@@ -1,18 +1,31 @@
-# Probar Web y Android juntos
+# Probar un pedido Web → backend → PostgreSQL → Android
 
-Sí, ambas aplicaciones usan el mismo backend y PostgreSQL. Un pedido enviado desde la Web persiste y aparece en Android después de que el personal lo acepta. Android todavía no tiene la bandeja de pedidos entrantes, por eso la aceptación se hace una vez desde la API.
+La Web y Android usan el mismo backend y PostgreSQL. La Web crea el pedido; el personal lo acepta por API porque Android todavía no tiene bandeja de pedidos entrantes; después Android prepara el producto.
 
-## 1. Iniciar la base
+## Requisitos
 
-Desde la raíz del repositorio, abrir Docker Desktop y ejecutar:
+- Windows, repositorio abierto en PowerShell desde su raíz y Docker Desktop iniciado.
+- Backend: JDK 25 (el wrapper usa Gradle 9.8.1).
+- Web: Node.js 24, Corepack y pnpm 12.
+- Android: Android Studio con SDK 37, ADB y teléfono con depuración USB autorizada (o emulador).
+
+## 1. Iniciar PostgreSQL
+
+Desde la raíz:
 
 ```powershell
+docker info
+docker compose -f infra\docker-compose.yml config --quiet
 docker compose -f infra\docker-compose.yml up -d postgres
+docker compose -f infra\docker-compose.yml ps
+docker compose -f infra\docker-compose.yml exec -T postgres pg_isready
 ```
+
+El último comando debe indicar que acepta conexiones. Solo PostgreSQL es necesario para esta prueba; Mailpit y Prism no se usan.
 
 ## 2. Iniciar el backend
 
-En otra terminal, desde la raíz:
+Abrí otra terminal PowerShell desde la raíz. Generá una clave JWT local aleatoria y levantá Spring:
 
 ```powershell
 $bytes = New-Object byte[] 32
@@ -22,82 +35,142 @@ $rng.Dispose()
 $env:JWT_SECRET = [Convert]::ToBase64String($bytes)
 $env:SPRING_PROFILES_ACTIVE = "dev"
 $env:DEMO_STAFF_PASSWORD = "demo-only-password"
+$env:CORS_ALLOWED_ORIGINS = "http://localhost:5173"
 .\backend\gradlew.bat -p backend bootRun --no-daemon --max-workers=1
 ```
 
-Esperar a que inicie en el puerto 8080. No cerrar esta terminal mientras se prueba.
-
-## 3. Iniciar la Web
-
-En una tercera terminal, desde la raíz:
+Dejá esa terminal abierta. Spring/Flyway prepara el esquema al arrancar. En otra terminal, comprobá salud:
 
 ```powershell
-if (-not (Test-Path .\web\.env.local)) { Copy-Item .\web\.env.example .\web\.env.local }
-Set-Location .\web
-corepack pnpm install
-corepack pnpm dev
+Invoke-RestMethod http://localhost:8080/api/v1/actuator/health
 ```
 
-Abrir la URL que muestra Vite (normalmente `http://localhost:5173`) y entrar a `/t/TBL-003`. Si esa mesa está ocupada y no tenés su código de unión, probá otra mesa libre cambiando el código de la URL. Iniciar sesión con un nombre, agregar un producto y enviarlo. La página de seguimiento muestra su estado también después de actualizar el navegador; anotá el código visible del pedido (por ejemplo, `#001`).
+Debe responder `UP`. Las cuentas demo usan la contraseña recién configurada; este paso fija `demo-only-password` para esta ejecución local.
 
-**Estado de esta base local (18-10-2026):** las tres mesas cargadas (`TBL-001`, `TBL-002`, `TBL-003`) tienen una sesión abierta. Para probar un pedido nuevo hace falta liberar una mesa por el flujo normal; no cierres sesiones ajenas ni borres datos para seguir esta guía.
+Compose permite personalizar `DB_NAME`, `DB_USER` y `DB_PASSWORD` con `infra\.env`; Spring no carga ese archivo automáticamente. Si esos valores no son los predeterminados, exportá también `DB_URL`, `DB_USER` y `DB_PASSWORD` correspondientes en la terminal del backend antes de iniciar Gradle.
 
-## 4. Preparar Android
+## 3. Comprobar una mesa libre
 
-Con el teléfono conectado y autorizado por USB, en otra terminal desde la raíz:
+En PowerShell:
 
 ```powershell
+$tableCodes = @("TBL-001", "TBL-002", "TBL-003")
+foreach ($code in $tableCodes) {
+    $table = Invoke-RestMethod "http://localhost:8080/api/v1/public/tables/$code"
+    [pscustomobject]@{ Code = $code; Label = $table.tableLabel; CanOpen = $table.canOpen; ActiveSession = $table.hasActiveSession }
+}
+```
+
+Usá únicamente una mesa con `CanOpen = True`. Si todas son `False`, detenete: no abras ni cierres sesiones ajenas ni borres datos. Hace falta que el responsable habilite una mesa legítimamente libre. En la comprobación realizada para esta guía, las tres mesas tenían sesión abierta; el flujo completo no se pudo volver a ejecutar por esa razón.
+
+## 4. Iniciar la Web y enviar el pedido
+
+En una tercera terminal PowerShell desde la raíz:
+
+```powershell
+Set-Location .\web
+corepack pnpm install --frozen-lockfile
+$env:VITE_API_BASE_URL = "http://localhost:8080/api/v1"
+corepack pnpm dev --host localhost --port 5173 --strictPort
+```
+
+La URL se configura solo en esa terminal; no hace falta modificar `.env.local`. El backend permite CORS para `http://localhost:5173`; `--strictPort` evita que Vite cambie silenciosamente a otro puerto. Abrí una ventana privada nueva y entrá a `http://localhost:5173/t/CODIGO-LIBRE`, reemplazando el código por la mesa que dio `CanOpen = True`. Así la Web no reutiliza un token viejo guardado en el navegador.
+
+Ingresá tu nombre, elegí un producto disponible y completá las opciones obligatorias que muestre la Web. Enviá el pedido. En seguimiento, anotá la mesa y el código visible (por ejemplo, `#001`). El pedido queda `PENDING_REVIEW`.
+
+## 5. Compilar y conectar Android
+
+Con un teléfono por USB, abrí otra terminal PowerShell desde la raíz:
+
+```powershell
+adb devices -l
 adb reverse tcp:8080 tcp:8080
 .\android\gradlew.bat -p android assembleDebug -PsomphieApiBaseUrl=http://127.0.0.1:8080/api/v1/ --no-daemon --max-workers=1
 adb install -r .\android\app\build\outputs\apk\debug\app-debug.apk
 adb shell am start -n com.somphie.staff/.MainActivity
 ```
 
-Iniciar sesión con `owner@somphie.demo` y `demo-only-password`; elegir **Barra** o **Cocina** según el producto.
+Iniciá sesión con `owner@somphie.demo` y `demo-only-password`; seleccioná la estación del producto.
 
-## 5. Pasar el pedido a la cola Android
+## 6. Encontrar y aceptar el pedido
 
-Los pedidos nuevos quedan `PENDING_REVIEW`; la cola Android muestra pedidos aceptados. La Web muestra el código visible, no el ID interno. En una terminal PowerShell, iniciar sesión como Owner y listar los pedidos pendientes:
+En una terminal PowerShell, iniciá sesión con el Owner y listá pedidos pendientes:
 
 ```powershell
-$login = Invoke-RestMethod -Method Post -Uri "http://localhost:8080/api/v1/auth/login" -ContentType "application/json" -Body (@{ email = "owner@somphie.demo"; password = "demo-only-password" } | ConvertTo-Json)
+$login = Invoke-RestMethod -Method Post -Uri "http://localhost:8080/api/v1/auth/login" -ContentType "application/json" -Body (@{ email = "owner@somphie.demo"; password = "demo-only-password" } | ConvertTo-Json -Compress)
 $headers = @{ Authorization = "Bearer $($login.accessToken)" }
 $orders = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/staff/orders?status=PENDING_REVIEW&limit=50" -Headers $headers
 $orders.items | Select-Object id, displayCode, tableLabel, createdAt
 ```
 
-Buscá en esa lista el código de pedido y la mesa que anotaste en la Web. Copiá su `id` y aceptalo con una clave idempotente nueva:
+Buscá la fila que coincida con la mesa y el código anotados en la Web. Copiá su `id` (no `displayCode`) y aceptá:
 
 ```powershell
-$orderId = "PEGAR-EL-ID-DE-LA-FILA-CORRECTA"
+$orderId = "PEGAR-ID-UUID-DE-LA-FILA-CORRECTA"
 $key = [guid]::NewGuid().ToString()
 $acceptHeaders = @{ Authorization = "Bearer $($login.accessToken)"; "Idempotency-Key" = $key }
 Invoke-RestMethod -Method Post -Uri "http://localhost:8080/api/v1/staff/orders/$orderId/accept" -Headers $acceptHeaders -ContentType "application/json" -Body "{}"
 ```
 
-En Android, tocar **Actualizar**: el pedido debe aparecer en la estación correspondiente al producto. Usar **Empezar** y **Marcar listo**; el seguimiento Web reflejará los estados. No repitas la aceptación si no sabés si la primera solicitud tuvo éxito.
+Este endpoint existe, requiere `order.accept` y una clave idempotente. En Android tocá **Actualizar**: el producto aceptado debe aparecer en su estación. Si la respuesta de aceptación es incierta, consultá el pedido por su ID:
 
-## 6. Apagar todo sin borrar los datos
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/staff/orders/$orderId" -Headers $headers
+```
 
-1. En Android, cerrar la app:
+Si sigue `PENDING_REVIEW`, repetí exactamente la solicitud anterior con la misma `$key`; nunca generes una nueva para reintentar la misma operación.
+
+## 7. Comprobar persistencia y estados
+
+En la terminal que uses para PostgreSQL, asigná el UUID copiado de la lista API (también después de reiniciar una terminal) y ejecutá esta consulta de solo lectura. Funciona antes y después de aceptar o preparar:
+
+```powershell
+$orderId = "PEGAR-EL-UUID-DEL-PEDIDO"
+$dbUser = (docker compose -f infra\docker-compose.yml exec -T postgres printenv POSTGRES_USER).Trim()
+$dbName = (docker compose -f infra\docker-compose.yml exec -T postgres printenv POSTGRES_DB).Trim()
+if ($orderId -notmatch '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') { throw "Pegá un UUID válido en `$orderId" }
+$query = "SELECT o.id, o.display_code, o.status AS order_status, dt.table_code, oi.product_name, oi.status AS item_status FROM customer_order o JOIN table_session ts ON ts.id = o.session_id JOIN dining_table dt ON dt.id = ts.table_id LEFT JOIN order_item oi ON oi.order_id = o.id WHERE o.id = '$orderId'::uuid;"
+docker compose -f infra\docker-compose.yml exec -T postgres psql -U $dbUser -d $dbName -c $query
+```
+
+En Android usá **Empezar** y después **Marcar listo** si el servidor muestra esas acciones permitidas. En la pestaña **Pedidos**, la Web vuelve a consultar cada 8 segundos; también podés tocar su botón de actualización. Repetí la consulta SQL y verificá que `item_status` cambie junto con el estado que muestra cada aplicación.
+
+## Si algo falla
+
+- **Docker/PostgreSQL:** `docker info`, `docker compose -f infra\docker-compose.yml ps` y `docker compose -f infra\docker-compose.yml logs --tail=100 postgres`. No sigas hasta que `pg_isready` funcione.
+- **Backend:** ejecutá `Invoke-RestMethod http://localhost:8080/api/v1/actuator/health` y `Test-NetConnection localhost -Port 8080`; revisá los errores en la terminal de Gradle.
+- **Mesa ocupada:** repetí el paso 3. Si ninguna indica `CanOpen = True`, necesitás una mesa libre; no alteres sesiones.
+- **Web/CORS:** confirmá que Vite usa puerto 5173, el backend sigue activo y que la terminal de Vite tiene `VITE_API_BASE_URL=http://localhost:8080/api/v1`. Revisá la consola del navegador.
+- **Android:** `adb devices -l`, `adb reverse --list`, comprobá salud del backend en la PC y consultá `adb logcat -v time -s AndroidRuntime:E '*:S'`.
+- **Error al aceptar:** verificá el UUID y la sesión Owner; consultá `GET /staff/orders/{orderId}` para saber el estado actual. El backend valida permiso y transición.
+
+## Apagar y volver a levantar sin perder datos
+
+1. Detené Android y el túnel:
 
    ```powershell
    adb shell am force-stop com.somphie.staff
-   adb reverse --remove tcp:8080
+   $mappings = adb reverse --list
+   if ($mappings -match 'tcp:8080\s+tcp:8080$') { adb reverse --remove tcp:8080 }
    ```
 
-2. En las terminales de Vite y del backend, presionar **Ctrl+C**.
-3. Desde la raíz, detener PostgreSQL:
+2. En las terminales de Vite y Gradle, presioná **Ctrl+C**.
+3. Desde la raíz, detené **todos los servicios de este Compose** (PostgreSQL, Mailpit y Prism):
 
    ```powershell
-   docker compose -f infra\docker-compose.yml stop postgres
+   docker compose -f infra\docker-compose.yml stop
    ```
 
-El volumen de PostgreSQL se conserva. La próxima vez, volver a ejecutar el paso 1; no uses `docker compose down -v`, porque elimina los datos.
+   `stop` conserva contenedores y volumen. No uses `down -v` ni borres el volumen. No detiene contenedores de otros proyectos.
 
-## Límites
+Para volver a levantar y comprobar que el pedido sigue persistido:
 
-- El backend y PostgreSQL son compartidos; Web y Android no se envían datos directamente entre sí.
-- La contraseña demo es solo para desarrollo. La clave JWT se genera temporalmente en la terminal.
-- Las pruebas existentes de la Web con MSW son simuladas; el recorrido de estos pasos usa el backend y la base locales.
-- Si todas las mesas están ocupadas, no uses una sesión ajena: hace falta una mesa libre para abrir una sesión nueva.
+1. Volvé a ejecutar el paso 1. PostgreSQL conserva la base en el volumen.
+2. Repetí la consulta del paso 7 con el mismo `$orderId`. El pedido y los estados deben seguir allí.
+3. Si querés seguir usando la app, repetí los pasos 2, 4 y 5. Al regenerar `JWT_SECRET`, Android requiere iniciar sesión otra vez. El pedido anterior no necesita volver a crearse.
+
+## Comprobaciones de esta revisión
+
+- **Ejecutadas:** `docker compose ... config --quiet` validó la configuración; se inició el contenedor PostgreSQL existente, `pg_isready` respondió y una consulta de solo lectura confirmó `TBL-001`, `TBL-002` y `TBL-003` abiertas. PostgreSQL se detuvo al terminar la comprobación.
+- **Confirmadas en código/contrato, no ejecutadas ahora:** inicio backend, creación Web, login Owner, aceptación API y transiciones Android; sus rutas, variables y formatos corresponden a `application.yml`, OpenAPI y controladores.
+- **Pendiente:** el recorrido completo con un pedido nuevo. No se creó ni modificó ningún dato; las tres mesas están ocupadas.

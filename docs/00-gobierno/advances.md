@@ -1069,6 +1069,12 @@ El dueño delegó: *"toma las mejores decisiones posibles para que sea escalable
 - **Por qué:** la Web solo presenta el código visible del pedido y no se debe suponer que una mesa está libre ni borrar datos al apagar el entorno.
 - **Qué estudiar:** diferencia entre `displayCode` e `id`; `docker compose stop` detiene el contenedor sin eliminar el volumen persistente.
 
+### 2026-10-18 — Guía de extremo a extremo revisada contra código y configuración ✅
+- **Qué:** se reescribió `docs/07-despliegue/probar-web-y-android.md` para cubrir prerequisitos, PostgreSQL, backend, CORS/Web, Android USB, consulta/aceptación API, consulta SQL de solo lectura, diagnóstico y apagado/reinicio conservando el volumen. Se corrigió el reintento de aceptación para consultar el pedido y mantener la misma clave idempotente.
+- **Por qué:** los pedidos no se deben simular ni crear antes de confirmar que hay una mesa libre; los clientes comparten datos mediante el backend y PostgreSQL, y Android aún carece de bandeja de entrantes.
+- **Qué estudiar:** estado de sesión de mesa, ID interno frente a código visible y persistencia en el volumen nombrado de Compose.
+- **Validación:** `docker compose -f infra\docker-compose.yml config --quiet` pasó. Se levantó y detuvo solo PostgreSQL existente; `pg_isready` pasó y consultas de solo lectura confirmaron las tres mesas en `OPEN` y el pedido `d3062512-39a1-47ed-b140-237d55c609f9` (`IN_PREPARATION`) con el SQL incluido en la guía. `corepack pnpm dev --help` validó el reenvío de opciones de Vite. `.\android\gradlew.bat -p android assembleDebug -PsomphieApiBaseUrl=http://127.0.0.1:8080/api/v1/ --no-daemon --max-workers=1` terminó `BUILD SUCCESSFUL`. No se inició backend/Web ni se creó/alteró pedido; el flujo nuevo queda bloqueado por no haber mesa libre.
+
 ---
 ## 7. Conceptos para estudiar (glosario rápido de este tramo)
 
