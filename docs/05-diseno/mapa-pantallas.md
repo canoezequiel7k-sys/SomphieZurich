@@ -1,6 +1,6 @@
 # Mapa de pantallas
 
-Cada pantalla lista: casos de uso, **datos** que consume (endpoints), **estados** a diseñar y notas. Todas deben cubrir: cargando · vacío · error · sin conexión (salvo que se indique). 
+Cada pantalla lista: casos de uso, **datos** que consume (endpoints), **estados** a diseñar y notas. Todas deben cubrir: cargando · vacío · error · sin conexión (salvo que se indique).
 Ver wireframes de baja fidelidad y matriz de cobertura en [wireframes.md](wireframes.md) (WP-UX-11).
 
 ## 1. Web cliente (`SC-C-*`)
@@ -63,11 +63,11 @@ flowchart TD
 
 | ID | Pantalla | CU | Datos | Estados / notas |
 |---|---|---|---|---|
-| SC-S-01 | Login | CU-20 | `/auth/login` | Credenciales inválidas, bloqueo, cambio de contraseña obligatorio |
+| SC-S-01 | Login del personal | CU-20 | `/auth/login` | Solo cuentas existentes; credenciales inválidas, bloqueo y cambio de contraseña obligatorio. Sin registro público ni autoservicio |
 | SC-S-02 | Home (pestañas por permisos) | CU-20 | `/me` | Pestañas visibles según `permissions` |
 | SC-S-03 | Entrantes | CU-21 | `GET /staff/orders` | Vacío ("Sin pedidos nuevos"), tiempo de espera, resaltado cerca del TTL, sonido/vibración opcional |
 | SC-S-04 | Detalle de pedido | CU-22/23 | `GET /staff/orders/{id}` | Ítems con disponibilidad actual; excluir con motivo; `ORDER_ALREADY_DECIDED` (mostrar quién decidió) |
-| SC-S-05 | Cola de estación | CU-24 | `GET …/queue` | FIFO, `delayed`, notas destacadas, filtro por estado |
+| SC-S-05 | Cola de estación (Cocina o Barra) | CU-24 | `GET …/queue` | Una vista filtrada por estación autorizada; FIFO, `delayed`, notas destacadas, filtro por estado |
 | SC-S-06 | Acciones de ítem | CU-25–28 | `…/start·ready·deliver·cancel·undo` | Confirmación en cancelar (motivo), deshacer, errores de transición |
 | SC-S-07 | Tablero de mesas | CU-29 | `GET /staff/tables` | 6 `displayStatus`, contador de pendientes, saldo (F7) |
 | SC-S-08 | Detalle de mesa/sesión | CU-26/29/13 | `GET /staff/sessions/{id}` | Pedidos, cuenta, participantes, código; entregar listos |
@@ -75,8 +75,16 @@ flowchart TD
 | SC-S-10 | Cerrar sesión | CU-34/35 | `…/close`, `…/force-close` | Checklist de impedimentos, forzar (solo con permiso + motivo) |
 | SC-S-11 | Disponibilidad | CU-36 | `GET /menu` + `PATCH …/availability` | Búsqueda, toggle inmediato con rollback si falla |
 | SC-S-12 | Nuevo pedido a nombre del cliente | CU-31 | `POST …/orders` | Selector de productos |
-| SC-S-13 | Perfil/ajustes | CU-20 | — | Cerrar sesión, sonido/vibración |
+| SC-S-13 | Perfil/ajustes | CU-20 | `/me` | Datos del usuario y estación; cerrar sesión y ajustes básicos solo si están soportados |
 | SC-S-14 | Estados globales | — | — | Offline, sesión expirada, error de servidor |
+
+### Correspondencia con la lámina Android recibida
+
+La lámina representa ocho teléfonos: **Login (SC-S-01), Inicio (SC-S-02), Pedidos entrantes (SC-S-03), Detalle del pedido (SC-S-04), Mesas (SC-S-07), Cocina y Barra (dos vistas de SC-S-05), y Perfil (SC-S-13)**. Las acciones sobre cada producto corresponden a SC-S-06 dentro del flujo de estación; no requieren contar otro teléfono.
+
+La maqueta es una referencia visual: no agrega endpoints ni autoriza mostrar métricas, saldos, temporizadores o datos personales que el backend no entregue al usuario. El texto “Olvidaste tu contraseña” de la imagen no tiene flujo de recuperación definido en el contrato actual, por lo que no se considera una acción implementable todavía.
+
+Las cuentas de personal las crea el dueño; **no se ofrece registro público**. No se debe agregar un formulario de alta en la app. El alta desde un panel administrativo tampoco se implementa hasta que se aprueben sus operaciones y permisos (Q-26).
 
 ## 3. Panel de administración (`SC-A-*`)
 
@@ -88,7 +96,7 @@ flowchart TD
 | SC-A-04 | Catálogo (categorías y productos) | CU-40 | Reordenar, archivar, disponibilidad |
 | SC-A-05 | Editor de producto | CU-40 | Imagen + alt, alérgenos, estación, `OPTIMISTIC_LOCK_FAILED` |
 | SC-A-06 | Mesas y QR | CU-41 | Regenerar QR (con advertencia), hoja imprimible |
-| SC-A-07 | Usuarios | CU-42 | Alta, roles, estaciones, deshabilitar |
+| SC-A-07 | Usuarios | CU-42 | Alta, roles, estaciones, deshabilitar; flujo administrativo pendiente de contrato (Q-26), no es registro público |
 | SC-A-08 | Roles (solo lectura en MVP) | CU-42 | Matriz de permisos |
 | SC-A-09 | Reportes | CU-43 | Rango de fechas, exportar PDF |
 | SC-A-10 | Auditoría | CU-44 | Filtros y detalle |
@@ -108,7 +116,7 @@ flowchart TD
 | `/admin/*` | SC-A-* (lazy) |
 
 ## 5. Navegación Android (resumen)
-`Login → Home(bottom nav: Entrantes · Estación(es) · Mesas · Disponibilidad · Más)`; el contenido de la barra depende de `permissions` y `stations` de `/me`.
+`Login → Home(bottom nav conceptual: Inicio · Pedidos · Mesas · Más)`; Cocina/Barra se muestran como colas de la estación autorizada. La composición final depende de `permissions` y `stations` de `/me`; disponibilidad u otros destinos solo aparecen si están aprobados y habilitados para el perfil.
 
 ## 6. Etiquetas visibles para estados (es-AR)
 

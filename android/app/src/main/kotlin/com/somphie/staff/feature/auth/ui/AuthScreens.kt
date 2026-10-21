@@ -1,128 +1,170 @@
 package com.somphie.staff.feature.auth.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.somphie.staff.R
 
+//Enumeracion para controlar el paso entre Splash y el login
+enum class AuthStep{
+    SPLASH, LOGIN
+}
+
+//Composable que anima la transicion entre Splash y Login
 @Composable
-fun SignInScreen(
+fun SignedOutFlow(
     state: AuthUiState.SignedOut,
     onSignIn: (String, String) -> Unit,
 ) {
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    //Estado local para saber en que paso esta el usuario(Splash o Login)
+    var currentStep by remember { mutableStateOf(AuthStep.SPLASH) }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(stringResource(R.string.login_title), style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(24.dp))
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.email_label)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true,
-        )
-        Spacer(Modifier.height(12.dp))
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.password_label)) },
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-        )
-        state.errorCode?.let { code ->
-            Spacer(Modifier.height(12.dp))
-            Text(stringResource(authErrorText(code)))
-        }
-        Spacer(Modifier.height(20.dp))
-        Button(
-            onClick = { onSignIn(email, password) },
-            enabled = !state.isSubmitting && email.isNotBlank() && password.isNotEmpty(),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            if (state.isSubmitting) CircularProgressIndicator()
-            else Text(stringResource(R.string.login_action))
+    //Contenedor animado con deslizamiento horizontal
+    AnimatedContent(
+        targetState = currentStep,
+        transitionSpec = {
+            if (targetState == AuthStep.LOGIN){
+                //Animacion al avanzar hacia el Login, se desliza de derecha a izquierda
+                (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
+                    slideOutHorizontally { width -> -width } + fadeOut()
+                )
+            } else {
+                //Animacion al volver hacia el Splash (Desliza de izquierda a derecha
+                (slideInHorizontally { width -> -width } + fadeIn()).togetherWith(
+                    slideOutHorizontally { width -> width } + fadeOut()
+                )
+            }
+        },
+        label = "AuthFlowTransition"
+    ) { step ->
+        when(step){
+            //Pantalla 1, muestra el splash de bienvenida
+            AuthStep.SPLASH -> SplashScreen(
+                onGoToLogin = {currentStep = AuthStep.LOGIN}
+            )
+            //Pantalla 2, Muestra el formulario para iniciar sesion
+            AuthStep.LOGIN -> SignInFormScreen(
+                state = state,
+                onSignIn = onSignIn,
+                onBackToSplash = {currentStep = AuthStep.SPLASH}
+            )
         }
     }
 }
 
+//Pantalla 1: Splash
 @Composable
-fun ChangePasswordScreen(
-    state: AuthUiState.ChangePassword,
-    onChangePassword: (String, String) -> Unit,
-) {
-    var current by remember { mutableStateOf("") }
-    var new by remember { mutableStateOf("") }
+private fun SplashScreen(onGoToLogin: () -> Unit) {
+    val coffeeColor = Color(0xFF3A2B22)
+    val creamColor = Color(0xFFF6F1E8)
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.Center,
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(coffeeColor)
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            stringResource(R.string.password_change_title),
-            style = androidx.compose.material3.MaterialTheme.typography.headlineMedium,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(state.profile.displayName)
-        Spacer(Modifier.height(20.dp))
-        OutlinedTextField(
-            value = current,
-            onValueChange = { current = it },
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.current_password_label)) },
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-        )
-        Spacer(Modifier.height(12.dp))
-        OutlinedTextField(
-            value = new,
-            onValueChange = { new = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.new_password_label)) },
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-        )
-        state.errorCode?.let { code ->
-            Spacer(Modifier.height(12.dp))
-            Text(stringResource(authErrorText(code)))
-        }
-        Spacer(Modifier.height(20.dp))
-        Button(
-            onClick = { onChangePassword(current, new) },
-            enabled = !state.isSubmitting && current.isNotEmpty() && new.length >= 10,
-            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            if (state.isSubmitting) CircularProgressIndicator()
-            else Text(stringResource(R.string.change_password_action))
+            Spacer(modifier = Modifier.weight(1f))
+            //Icono de la marca
+            Icon(
+                painter = painterResource(R.drawable.ic_logo.svg),
+                contentDescription = null
+            )
+            Spacer(Modifier.height(16.dp))
+
+            //Titulo
+            Text(
+                text = "Somphie",
+                fontSize = 42.sp,
+                fontWeight = FontWeight.Bold,
+                color = creamColor
+            )
+            Text(
+                text = "ZÚRICH",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 6.sp,
+                color = creamColor.copy(alpha = 0.8f)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            //Texto descriptivo en las areas de la cafeteria
+            Text(
+                text = "Coffee · Bar · Cuisine",
+                style = MaterialTheme.typography.bodyMedium,
+                color = creamColor.copy(alpha = 0.6f)
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            Button(
+                onClick = onGoToLogin,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = coffeeColor,
+                    containerColor = creamColor
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.login_action),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+
+            //Pie de pagina con la version y aviso de seguridad
+            Text(
+                text = "v1.0.0 · Authorised staff only",
+                style = MaterialTheme.typography.labelSmall
+            )
         }
     }
 }
+
+//Formulario de Login
+
 
 @Composable
 fun SessionRestoreError(
@@ -131,7 +173,9 @@ fun SessionRestoreError(
     onClearSession: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         Text(stringResource(authErrorText(code)))

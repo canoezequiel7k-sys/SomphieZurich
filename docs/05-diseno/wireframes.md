@@ -95,34 +95,161 @@ Toda pantalla interactiva del sistema (Web cliente y App Android) debe tener dis
 
 ## 3. Wireframes de Baja Fidelidad — App Android del Personal (`SC-S-*`)
 
-### SC-S-03: Bandeja de Entrantes (Mozo/Cocina)
+La lámina de referencia contiene ocho teléfonos. Los esquemas siguientes cubren cada uno; son estructura visual, no agregan endpoints ni autorizan datos que el backend no entregue. Cocina y Barra son dos selecciones de la misma cola por estación (`SC-S-05`).
+
+### SC-S-01: Login del personal
 ```text
 +------------------------------------+
-| ☰ Entrantes             [🔔 3]   |
-+------------------------------------+
-| [Filtros: Todos | Cocina | Barra]  |
-+------------------------------------+
-| Mesa #3 • Hace 2 min               |
-| 3 ítems • Pendiente de revisión    |
-| [ ACEPTAR ]             [ RECHAZAR]|
-+------------------------------------+
-| Mesa #7 • Hace 5 min               |
-| 1 ítem • Pendiente de revisión     |
-| [ ACEPTAR ]             [ RECHAZAR]|
+|            Somphie Zürich          |
+|                                    |
+|       Acceso del personal          |
+|                                    |
+| Usuario / correo                   |
+| [____________________________]     |
+| Contraseña                  [◉]    |
+| [____________________________]     |
+|                                    |
+| [          Ingresar            ]   |
+|                                    |
+| No hay registro público.           |
 +------------------------------------+
 ```
 
-### SC-S-07: Tablero de Mesas
+Las cuentas las crea el dueño; no se muestra registro. La recuperación de contraseña no se incluye hasta que exista un flujo contractual. El cambio obligatorio de contraseña se muestra después del login cuando lo exige el backend.
+
+### SC-S-02: Inicio / panel del turno
 ```text
 +------------------------------------+
-| ☰ Tablero de Mesas      [ + Sesión]|
+| ☰ Inicio                    [MC]   |
+| Hola, Matías                       |
+| Turno actual: Barra                |
 +------------------------------------+
-| [Mesa 1]      [Mesa 2]      [Mesa 3]|
-| Libre         Ocupada       Atendida|
-| Saldo: $0     Saldo: $5.4k  Pend. 1 |
+| Pedidos       Mesas                |
+| Nuevos: 5     Activas: 8           |
 +------------------------------------+
-| [Mesa 4]      [Mesa 5]      [Mesa 6]|
-| Cerrando      Libre         Reserv. |
-| Saldo: $0     Saldo: $0     Saldo: $0|
+| Cocina        Barra                |
+| En preparación                    |
++------------------------------------+
+| Resumen del día                    |
+| [Solo métricas que entregue la API]|
++------------------------------------+
+| Inicio | Pedidos | Mesas | Más     |
 +------------------------------------+
 ```
+
+Las cifras y el resumen se muestran solo si el endpoint autorizado los provee; no se calculan en la app. Los destinos dependen del perfil y sus permisos.
+
+### SC-S-03: Pedidos entrantes
+```text
++------------------------------------+
+| ‹ Pedidos                     [↻]  |
+| [Nuevos] [En cocina] [En barra]    |
++------------------------------------+
+| Mesa 4                     Nuevo  |
+| 2 productos · 10:24                |
+| [Ver detalle]                      |
+| [Rechazar]             [Aceptar]   |
++------------------------------------+
+| Mesa 7                     Nuevo  |
+| 2 productos · 10:18                |
+| [Ver detalle]                      |
+| [Rechazar]             [Aceptar]   |
++------------------------------------+
+| Inicio | Pedidos | Mesas | Más     |
++------------------------------------+
+```
+
+### SC-S-04: Detalle del pedido
+```text
++------------------------------------+
+| ‹ Pedidos     Detalle del pedido   |
++------------------------------------+
+| Mesa 4 · 3 productos        Nuevo  |
+| 10:24                              |
++------------------------------------+
+| 2 × Latte                          |
+| 1 × Tostado mixto                  |
+| Nota: sin azúcar en el latte       |
++------------------------------------+
+| Total: solo si la respuesta lo     |
+| incluye para este perfil           |
++------------------------------------+
+| [          Rechazar             ]  |
+| [          Aceptar              ]  |
++------------------------------------+
+```
+
+El rechazo y las exclusiones deben respetar motivos y permisos del contrato; al recibir un conflicto se vuelve a consultar el pedido.
+
+### SC-S-07: Estado de mesas
+```text
++------------------------------------+
+| ‹ Mesas                       [↻]  |
+| [Todas] [Ocupadas] [Libres]        |
++------------------------------------+
+| Mesa 1       Mesa 2       Mesa 3   |
+| Ocupada      Ocupada      Ocupada  |
+|                                  |
+| Mesa 4       Mesa 5       Mesa 6   |
+| Ocupada      Libre        Ocupada  |
++------------------------------------+
+| El estado visible viene del backend|
+| Inicio | Pedidos | Mesas | Más     |
++------------------------------------+
+```
+
+No sumar estados ni acciones que no estén en la respuesta/contrato. Saldo y pendientes solo se muestran para perfiles autorizados.
+
+### SC-S-05: Cola de estación — Cocina (teléfono 6)
+```text
++------------------------------------+
+| ☰ Cocina                     [↻]  |
+| [En preparación]          [Listos] |
++------------------------------------+
+| Mesa 7                     8 min   |
+| 2 × Tostado mixto                  |
+|                                    |
+| Mesa 4                    12 min   |
+| 1 × Medialuna                      |
++------------------------------------+
+| Inicio | Pedidos | Mesas | Más     |
++------------------------------------+
+```
+
+### SC-S-05: Cola de estación — Barra (teléfono 7)
+```text
++------------------------------------+
+| ☰ Barra                      [↻]  |
+| [En preparación]          [Listos] |
++------------------------------------+
+| Mesa 2                     6 min   |
+| 2 × Cappuccino                     |
+|                                    |
+| Mesa 6                    10 min   |
+| 1 × Café espresso                  |
++------------------------------------+
+| Inicio | Pedidos | Mesas | Más     |
++------------------------------------+
+```
+
+Los tiempos, opciones, notas y acciones por ítem se presentan solo si vienen en la respuesta y el perfil puede verlos. Las acciones de preparación pertenecen a `SC-S-06`.
+
+### SC-S-13: Perfil
+```text
++------------------------------------+
+| Perfil                       [⚙]  |
++------------------------------------+
+|              [MC]                  |
+|            Matías C.               |
+|              Camarero              |
++------------------------------------+
+| Mi turno · Barra                ›  |
+| Cambiar estación                 ›  |
+| Ayuda                            ›  |
+| Cerrar sesión                    ›  |
++------------------------------------+
+| Inicio | Pedidos | Mesas | Más     |
++------------------------------------+
+```
+
+Mostrar cambio de estación solo cuando el backend permita seleccionar otra estación autorizada; cerrar sesión usa el flujo de autenticación existente.

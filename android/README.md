@@ -4,6 +4,8 @@ Aplicación nativa Kotlin/Compose para que el personal opere los pedidos desde l
 
 Para estudiar responsabilidades, flujo de datos, permisos, pruebas y lectura progresiva del módulo, consultá la [guía de arquitectura y estudio](./docs/ARCHITECTURE_AND_STUDY_GUIDE.md).
 
+Para el plan detallado de pantallas, dependencias y pasos de implementación personal, consultá el [roadmap Android](./docs/ROADMAP_ANDROID_DEV.md).
+
 ## Ejecutar localmente
 
 Se requiere Android Studio/JDK 17 o superior y Android SDK 37. El wrapper incluido usa Gradle 9.8.1; el proyecto compila con AGP 9.3.3, Kotlin integrado y Hilt 2.60.1, cuya versión actual requiere AGP 9 o superior. El plugin `com.android.legacy-kapt` conserva el procesamiento de anotaciones que Hilt necesita mientras el proyecto sigue usando la DSL nueva de AGP. En este worktree, el nombre de la carpeta contiene un carácter no ASCII; por eso `android.overridePathCheck=true` evita que AGP detenga el build en Windows. El emulador usa por defecto `http://10.0.2.2:8080/api/v1/`, que apunta al backend local del host. El backend debe estar levantado con PostgreSQL y las semillas locales de usuarios/estaciones.

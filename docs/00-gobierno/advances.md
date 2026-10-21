@@ -40,6 +40,7 @@ Leyenda: ✅ hecho · 🔄 en curso · ⬜ pendiente · 🟡 propuesto · 🔴 b
 - **✅ CU-02 — idempotencia segura al abrir sesión QR (2026-10-17):** `POST /public/tables/{tableCode}/sessions` exige UUID v4, valida la clave por mesa, reproduce exactamente la sesión/token original y rechaza reutilizarla con otro cuerpo. `IdempotencyService` cifra el guest token AES-GCM en la respuesta persistida; la tabla de participantes conserva solo SHA-256. Pruebas unitarias pasan; HTTP/PostgreSQL y suite global no pudieron completar porque Docker no está disponible. Ver detalle en sección 6.
 - **✅ WP-BE-92 — persistir expiración al competir con acción del personal (2026-10-16):** `acknowledge`/`resolve` conservan el 409 `STATE_CONFLICT`, pero ahora confirman `EXPIRED` y `waiter.updated` en esa transacción. Regresión PostgreSQL/HTTP para llamadas `OPEN` y `ACKNOWLEDGED` vencidas; suite global 403 pruebas, 0 fallos/errores, 1 omitida.
 - **✅ Continuación backend (2026-10-16):** no quedó otro bloque funcional completo con contrato/reglas aprobados. Q-26 ahora enumera decisiones de CRUD/admin y fórmulas/reportes; Q-35 registra definiciones de identidad/vinculación de cliente y Q-36 las de correo/encuesta. Se corrigió la dependencia obsoleta de Q-07 (retención) en Fase 9. No se cambió código ni OpenAPI porque faltan esas aprobaciones. Ver entrada de cierre al final de la sección 6.
+- **✅ Documentación de pantallas Android según la lámina nueva (2026-10-21):** se corrigió el conteo de 11 a 8 teléfonos y se documentaron login sin registro público, Inicio, pedidos entrantes y detalle, mesas, colas de Cocina/Barra y perfil. Archivos: `android/docs/ROADMAP_ANDROID_DEV.md`, `docs/05-diseno/mapa-pantallas.md`, `docs/05-diseno/wireframes.md` y esta bitácora.
 - **✅ Retención de idempotencia (2026-10-16):** servicio/job elimina automáticamente `idempotency_record` desde las 24 horas según `idempotencia-concurrencia.md` §1.2 y `modelo-datos.md` §5; pruebas unitarias, PostgreSQL y suite completa pasaron.
 - **✅ Retenciones con plazo definido (2026-10-16):** jobs diarios eliminan `idempotency_record` tras 24 h, anonimizan `display_name` de invitados a los 12 meses desde `joined_at` y eliminan `waiter_call` tras 30 días desde `created_at`. No modifican participantes vinculados a usuarios, órdenes, pagos ni auditoría. Pruebas unitarias y PostgreSQL pasaron.
 - **✅ WP-BE-60 — alcance de lectura en roles combinados (2026-10-15):** lista/detalle staff y replay SSE respetan el alcance más amplio de los roles combinados; Cocina sola conserva el filtro por estación. Regresiones HTTP/PostgreSQL/SSE ejecutadas dentro de la suite global del 2026-10-16.
@@ -1074,6 +1075,55 @@ El dueño delegó: *"toma las mejores decisiones posibles para que sea escalable
 - **Por qué:** los pedidos no se deben simular ni crear antes de confirmar que hay una mesa libre; los clientes comparten datos mediante el backend y PostgreSQL, y Android aún carece de bandeja de entrantes.
 - **Qué estudiar:** estado de sesión de mesa, ID interno frente a código visible y persistencia en el volumen nombrado de Compose.
 - **Validación:** `docker compose -f infra\docker-compose.yml config --quiet` pasó. Se levantó y detuvo solo PostgreSQL existente; `pg_isready` pasó y consultas de solo lectura confirmaron las tres mesas en `OPEN` y el pedido `d3062512-39a1-47ed-b140-237d55c609f9` (`IN_PREPARATION`) con el SQL incluido en la guía. `corepack pnpm dev --help` validó el reenvío de opciones de Vite. `.\android\gradlew.bat -p android assembleDebug -PsomphieApiBaseUrl=http://127.0.0.1:8080/api/v1/ --no-daemon --max-workers=1` terminó `BUILD SUCCESSFUL`. No se inició backend/Web ni se creó/alteró pedido; el flujo nuevo queda bloqueado por no haber mesa libre.
+
+### 2026-10-18 — Explicación clara de `PuedeAbrir = False` ✅
+- **Qué:** se aclaró que `False` significa que la mesa no está disponible para abrir una sesión nueva, se añadieron etiquetas simples a la consulta y un paso explícito para detenerse si no hay ninguna libre.
+- **Por qué:** `canOpen` en el backend es verdadero solo para una mesa activa sin sesión `OPEN`; el valor `False` de las tres mesas actuales era correcto, no un error del comando.
+- **Qué estudiar:** una mesa ocupada no se libera borrando o cambiando filas: el cierre normal requiere permisos, cero saldo y ningún pedido pendiente ni producto activo.
+- **Validación:** se inició PostgreSQL existente y solo se consultaron filas: `TBL-001`, `TBL-002` y `TBL-003` tienen sesión `OPEN`, con 1, 4 y 1 pedidos respectivamente. PostgreSQL se detuvo tras la lectura. No se inició ni cerró ninguna sesión y no se escribió en la base.
+
+### 2026-10-19 — Corrección del directorio de PowerShell en la guía ✅
+- **Qué:** se agregó al inicio una instrucción copiable para ir desde `C:\Users\SystemAncestral` a la raíz del repositorio y se indicó repetirla en cada terminal nueva antes de usar rutas relativas.
+- **Por qué:** `.\backend\gradlew.bat` solo existe bajo la raíz del proyecto; ejecutarlo desde la carpeta de usuario produce `CommandNotFoundException`, como ocurrió en la prueba manual.
+- **Qué estudiar:** PowerShell resuelve rutas que comienzan con `.\` desde el directorio actual, no desde la ubicación del documento.
+- **Validación:** reproduje el inicio desde `$HOME`, ejecuté la instrucción de navegación y comprobé que `Get-Location` muestra `C:\Users\SystemAncestral\Documents\SomphieZúrich`; `.\backend\gradlew.bat -p backend --version` respondió Gradle 9.8.1. También ejecuté desde `$HOME` el bloque de arranque hasta `bootRun --dry-run`: `BUILD SUCCESSFUL`, sin iniciar Spring ni modificar datos.
+
+### 2026-10-19 — Instrucciones controladas para liberar mesas demo ✅
+- **Qué:** se agregó a la guía el cierre forzado vía API staff para las mesas demo ocupadas, con vista previa de sesiones, pedidos, ítems y saldo, una confirmación explícita para cerrar las sesiones mostradas e idempotencia por sesión.
+- **Por qué:** las tres mesas demo están ocupadas y el pedido de prueba requiere una mesa disponible; el cierre normal no puede resolver sesiones con trabajo activo o saldo pendiente.
+- **Qué estudiar:** el cierre forzado conserva el historial y pagos, cancela pedidos pendientes e ítems activos, y no liquida un saldo positivo: queda como deuda no cobrada. No borra ni modifica datos mediante SQL.
+- **Validación:** el usuario confirmó que el bloque anterior no cerró ninguna mesa porque dejó vacía la confirmación por mesa. Se cambió a una frase única obligatoria (`CERRAR MESAS DEMO`); una respuesta vacía ahora detiene el bloque y no presenta la comprobación final. Contrato y código respaldan las rutas, permiso, motivo e idempotencia. Se validó sintaxis PowerShell sin ejecutar cierres; no se cerró ninguna sesión ni se alteraron pedidos.
+
+### 2026-10-19 — Aclaración de pedido pendiente para Android ✅
+- **Qué:** la guía ahora distingue el envío desde la Web de la aceptación operativa, exige verificar `ACCEPTED` y señala qué producto aparece en Barra o Cocina.
+- **Por qué:** el seguimiento Web confirma que el pedido fue recibido, pero Android muestra solo ítems aceptados; la captura tenía el pedido esperando confirmación y la app estaba en Cocina.
+- **Qué estudiar:** los ítems se asignan a estaciones distintas; Flat white va a Barra y Medialuna de manteca a Cocina. El personal debe aceptar el pedido antes de que sus ítems entren a la cola.
+- **Validación:** se contrastaron estados de aceptación y cola con `StaffOrdersController`, API Android y semillas de catálogo. No se aceptó ningún pedido ni se modificaron datos durante esta corrección.
+
+### 2026-10-19 — Roadmap de dependencias Web y Android ✅
+- **Qué:** se documentó la ruta desde el flujo ya disponible hasta la prueba integral, con pasos para la bandeja entrante Android, preparación, Web cliente, mesas/caja, tiempo real, administración, extras y entrega.
+- **Por qué:** separar lo que puede programarse ahora de lo que depende de API existente, de integración o de decisiones abiertas; aclarar que Web y Android comparten backend y no se comunican directamente.
+- **Qué estudiar:** `94,76 %` es cobertura de líneas de una ejecución registrada, no porcentaje de producto terminado. La ruta inmediata para eliminar la aceptación manual es WP-AND-51.
+- **Validación:** se contrastó con el roadmap de fases, guías de Web/Android, OpenAPI, ficha WP-BE-60 y consultas Q-26/35/36. Es documentación; no se ejecutaron pruebas de software ni se alteró código funcional.
+
+### 2026-10-21 — Roadmap detallado de Android y arquitectura ✅
+- **Qué:** se reescribió `android/docs/ROADMAP_ANDROID_DEV.md` siguiendo el plano visual, con estado real, inventario de pantallas, navegación, arquitectura por responsabilidades, pasos de implementación, dependencias, pruebas, criterios de terminado y bloqueos.
+- **Por qué:** dar al dueño una guía práctica para construir personalmente Android y evitar implementar rutas/contratos que no existen.
+- **Qué estudiar:** la guía usa arquitectura limpia pragmática dentro del módulo `:app`: UI → ViewModel → Repository → API; `domain` se agrega solo cuando separa una operación útil. Las reglas de negocio y autorización permanecen en backend.
+- **Validación:** las rutas de la bandeja, schemas de aceptar/rechazar y dependencias se contrastaron con OpenAPI y el roadmap de fases. `git diff --check` y enlaces internos revisados; no se modificó ni ejecutó código de aplicación.
+
+### 2026-10-21 — Aclaración del conteo del plano Android ✅
+- **Qué:** se corrigió el alcance del roadmap para contar las 11 pantallas dibujadas como teléfonos en la franja Android; disponibilidad y perfil quedan identificadas como dos extras fuera de esos teléfonos.
+- **Por qué:** el conteo anterior mezclaba referencias del mapa funcional con pantallas visibles en el plano que el dueño usará como guía.
+- **Qué estudiar:** una referencia funcional `SC-S-*` no equivale necesariamente a un teléfono dibujado; estados de error/carga se diseñan dentro de cada pantalla.
+- **Validación:** se contrastó el conteo con la imagen adjunta: 7 teléfonos principales, 4 secundarios y un recuadro independiente de otras pantallas. No se modificó código.
+
+### 2026-10-21 — Actualización de pantallas Android según la lámina nueva ✅
+- **Qué:** se corrigió el roadmap de Android a ocho teléfonos y se añadió su correspondencia con `SC-S-*`. El mapa y los wireframes ahora cubren Login, Inicio, pedidos entrantes, detalle del pedido, mesas, Cocina, Barra y Perfil.
+- **Por qué:** la nueva imagen reemplaza el conteo anterior. También se aclaró que Cocina y Barra son vistas de la cola por estación, que las cuentas las crea el dueño y que no hay registro público. La recuperación de contraseña y el alta desde un panel no se presentan como funciones disponibles porque el contrato no define esos flujos.
+- **Qué estudiar:** la lámina guía la composición visual, mientras el mapa funcional/contrato definen datos, permisos y operaciones; una referencia de pantalla no autoriza inventar endpoints.
+- **Validación:** `npx --yes markdownlint-cli2@0.23.3 "android/docs/ROADMAP_ANDROID_DEV.md" "docs/05-diseno/mapa-pantallas.md" "docs/05-diseno/wireframes.md"` pasó sin incidencias; `git diff --check` terminó con código 0. No se modificó código de aplicación.
+- **Archivos tocados:** `android/docs/ROADMAP_ANDROID_DEV.md`, `docs/05-diseno/mapa-pantallas.md`, `docs/05-diseno/wireframes.md`, `docs/00-gobierno/advances.md`.
 
 ---
 ## 7. Conceptos para estudiar (glosario rápido de este tramo)
