@@ -150,9 +150,9 @@ La pantalla **Inicio** puede funcionar como contenedor de secciones. Mostrá sol
 
 | Ref. | Pantalla/flujo | Estado | Prioridad |
 |---|---|---|---|
-| SC-S-01 | Login | Implementada; falta seguir probando casos reales | Base |
+| SC-S-01 | Splash / Login (Pantalla 1 y 2) | ✅ Implementada y personalizada con animaciones de flujo | Base |
 | Cambio de contraseña | Implementada cuando el backend lo exige | Base |
-| SC-S-02 | Inicio/contenedor según permisos | Parcial; la app actualmente entra directo a preparación | Alta |
+| SC-S-02 | Inicio/contenedor según permisos (Pantalla 3) | 🔄 En curso | Alta |
 | SC-S-03 | Pedidos entrantes | No implementada | Muy alta |
 | SC-S-04 | Detalle entrante: aceptar/rechazar/exclusiones permitidas | No implementada | Muy alta |
 | SC-S-05 | Cola por estación | Implementada | Alta: pulido e integración |
