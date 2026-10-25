@@ -57,4 +57,19 @@
     <string name="unexpected_response">El servidor devolvió una respuesta que no pudimos interpretar.</string>
     <string name="dismiss_action">Volver</string>
     <string name="preparation_permission_required">Tu perfil no tiene permiso para ver colas de preparación.</string>
+
+    <!-- Textos para la pantalla 3: Inicio y navegacion Inferior -->
+    <String name="nav_name">Inicio</String>
+    <String name="nav_orders">Pedidos</String>
+    <String name="nav_tables">Mesas</String>
+    <String name="nav_progile">Perfil</String>
+    <String name="greeting_user">Hola, %1$s</String>
+    <String name="greeting_sub">Buen turno!</String>
+    <String name="orders_in_progress">Pedidos (En curso)</String>
+    <String name="active_tables">Mesas (Activas)</String>
+    <String name="kitchen_prep">Cocina (Preparacion)</String>
+    <String name="bar_prep">Barra (Preparacion)</String>
+    <String name="current_shift">Turno Actual</String>
+    <String name="shift_hour">En curso · 10:00 - 18:00</String>
+
 </resources>
