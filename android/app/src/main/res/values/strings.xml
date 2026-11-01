@@ -59,17 +59,17 @@
     <string name="preparation_permission_required">Tu perfil no tiene permiso para ver colas de preparación.</string>
 
     <!-- Textos para la pantalla 3: Inicio y navegacion Inferior -->
-    <String name="nav_name">Inicio</String>
-    <String name="nav_orders">Pedidos</String>
-    <String name="nav_tables">Mesas</String>
-    <String name="nav_progile">Perfil</String>
-    <String name="greeting_user">Hola, %1$s</String>
-    <String name="greeting_sub">Buen turno!</String>
-    <String name="orders_in_progress">Pedidos (En curso)</String>
-    <String name="active_tables">Mesas (Activas)</String>
-    <String name="kitchen_prep">Cocina (Preparacion)</String>
-    <String name="bar_prep">Barra (Preparacion)</String>
-    <String name="current_shift">Turno Actual</String>
-    <String name="shift_hour">En curso · 10:00 - 18:00</String>
+    <string name="nav_name">Inicio</string>
+    <string name="nav_orders">Pedidos</string>
+    <string name="nav_tables">Mesas</string>
+    <string name="nav_progile">Perfil</string>
+    <string name="greeting_user">Hola, %1$s</string>
+    <string name="greeting_sub">Buen turno!</string>
+    <string name="orders_in_progress">Pedidos (En curso)</string>
+    <string name="active_tables">Mesas (Activas)</string>
+    <string name="kitchen_prep">Cocina (Preparacion)</string>
+    <string name="bar_prep">Barra (Preparacion)</string>
+    <string name="current_shift">Turno Actual</string>
+    <string name="shift_hour">En curso · 10:00 - 18:00</string>
 
 </resources>
