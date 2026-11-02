@@ -78,8 +78,9 @@ fun SignedOutFlow(
     state: AuthUiState.SignedOut,
     onSignIn: (String, String) -> Unit,
 ) {
-    //Estado local para saber en que paso esta el usuario(Splash o Login)
-    var currentStep by remember { mutableStateOf(AuthStep.SPLASH) }
+    // Si viene con error o cargando, nos quedamos en LOGIN para que el usuario vea el mensaje
+    val initialStep = if (state.errorCode != null || state.isSubmitting) AuthStep.LOGIN else AuthStep.SPLASH
+    var currentStep by rememberSaveable(state.errorCode) { mutableStateOf(initialStep) }
 
     //Contenedor animado con deslizamiento horizontal
     AnimatedContent(

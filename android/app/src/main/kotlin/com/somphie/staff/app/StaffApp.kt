@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.somphie.staff.feature.home.ui.HomeScreen
 import com.somphie.staff.feature.auth.ui.AuthUiState
 import com.somphie.staff.feature.auth.ui.AuthViewModel
 import com.somphie.staff.feature.auth.ui.ChangePasswordScreen
@@ -48,7 +49,14 @@ fun StaffApp(viewModel: AuthViewModel) {
             is AuthUiState.ChangePassword -> ChangePasswordScreen(current, viewModel::changePassword)
 
             // Muestra la pantalla operativa cuando el usuario ya inicio sesion
-            is AuthUiState.SignedIn -> StationPreparationScreen(current.profile, viewModel::signOut)
+            is AuthUiState.SignedIn -> HomeScreen(
+                profile = current.profile,
+                onNavigateToOrders = {},
+                onNavigateToTables = {},
+                onNavigateToKitchen = {},
+                onNavigateToBar = {},
+                onNavigateToProfile = viewModel::signOut
+            )
 
             // Muestra pantalla de error si falla la lectura de credenciales cifradas
             is AuthUiState.RestoreError -> SessionRestoreError(
