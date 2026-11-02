@@ -1,7 +1,11 @@
-management: # Permite diagnosticar la instalación únicamente en desarrollo local.
+management: # Permite diagnosticar la instalacion unicamente en desarrollo local.
   endpoint: # Ajustes del endpoint de salud.
-    health: # Configuración específica del perfil dev.
-      show-details: always # Facilita el diagnóstico local sin ampliar los perfiles públicos.
-logging: # Aumenta el detalle solo del código propio durante desarrollo.
+    health: # Configuracion especifica del perfil dev.
+      show-details: always # Facilita el diagnostico local sin ampliar los perfiles publicos.
+logging: # Aumenta el detalle solo del codigo propio durante desarrollo.
   level: # Controla el nivel por paquete.
     com.somphie: DEBUG # Ayuda a estudiar el flujo sin activar trazas globales.
+somphie:
+  jwt:
+    # Clave de desarrollo local (Base64 de 32 bytes) para que bootRun funcione sin setear variables manuales
+    secret: ${JWT_SECRET:k7l0b1d3kYV4oN5/qjW2tq5mRz2X9L7pU9yW8uQ1aBc=}
