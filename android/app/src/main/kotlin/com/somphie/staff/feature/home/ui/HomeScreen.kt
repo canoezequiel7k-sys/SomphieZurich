@@ -34,6 +34,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.somphie.staff.core.network.StaffProfile
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.Badge
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material.icons.filled.SoupKitchen
+import androidx.compose.material.icons.filled.LocalCafe
 
 //Display three: Principal panel del turno de work
 @OptIn(ExperimentalMaterial3Api::class)
@@ -150,5 +164,113 @@ fun HomeScreen(
                 )
             }
         }
-    ) { }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ){
+            //Saludo
+            Column(
+                modifier = Modifier.padding(top = 8.dp)
+            ){
+                Text(
+                    text = "Hola, ${profile.displayName}",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "¡Buen turno!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            //Accesos rapidos (Grid 2x2)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                HomeDashboardCard(
+                    title = "Cocina",
+                    subtitle = "(preparación)",
+                    badgeCount = null,
+                    icon = Icons.Default.SoupKitchen,
+                    onClick = onNavigateToKitchen,
+                    modifier = Modifier.weight(1f)
+                )
+                HomeDashboardCard(
+                    title = "Barra",
+                    subtitle = "(preparación)",
+                    badgeCount = null,
+                    icon = Icons.Default.LocalCafe,
+                    onClick = onNavigateToBar,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            
+            //Turno Actual
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Turno actual", style = MaterialTheme.typography.labelMedium)
+                        Text("10:00 - 18:00", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    }
+                    SuggestionChip(
+                        onClick = {},
+                        label = { Text("En curso") }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeDashboardCard(
+    title: String,
+    subtitle: String,
+    badgeCount: Int?,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.height(130.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Box(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+            if (badgeCount != null) {
+                Badge(
+                    containerColor = Color(0xFFB07255),
+                    contentColor = Color.White,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Text("$badgeCount")
+                }
+            }
+            Column(
+                modifier = Modifier.align(Alignment.CenterStart),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
 }
