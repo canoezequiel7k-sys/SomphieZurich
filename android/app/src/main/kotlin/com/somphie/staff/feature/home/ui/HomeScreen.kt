@@ -2,7 +2,14 @@ package com.somphie.staff.feature.home.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -10,14 +17,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -37,7 +47,7 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit
 ) {
     //Estado local para seleccionar la pestaña activa
-    val selectedTab by rememberSaveable { mutableStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -61,7 +71,7 @@ fun HomeScreen(
                     //Chip a la recha con la estacion activa actual
                     AssistChip(
                         onClick = {},
-                        label = {Text("Cocina", fontSize = 12.sp)},
+                        label = { Text("Cocina", fontSize = 12.sp) },
                         colors = AssistChipDefaults.assistChipColors(
                             containerColor = Color(0xFF61715B),
                             labelColor = Color(0xFFF6F1E8)
@@ -80,7 +90,64 @@ fun HomeScreen(
                 containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp
             ) {
-                
+                NavigationBarItem(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    icon = {
+                        Icon(
+                            Icons.Default.Home,
+                            contentDescription = "Inicio"
+                        )
+                    },
+                    label = { Text("Inicio") }
+                )
+
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = {
+                        selectedTab = 1
+                        onNavigateToOrders()
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.ReceiptLong,
+                            contentDescription = "Pedidos"
+                        )
+                    },
+                    label = { Text("Pedidos") }
+                )
+
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = {
+                        selectedTab = 2
+                        onNavigateToTables()
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.TableBar,
+                            contentDescription = "Mesas"
+                        )
+                    },
+                    label = { Text("Mesas") }
+                )
+
+                NavigationBarItem(
+                    selected = selectedTab == 3,
+                    onClick = {
+                        selectedTab = 3
+                        onNavigateToProfile()
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Perfil"
+                        )
+                    },
+                    label = {
+                        Text("Perfil")
+                    }
+                )
             }
         }
     ) { }
