@@ -67,4 +67,35 @@ interface StaffApi {
         @Path("itemId") itemId: String,
         @Header("Idempotency-Key") idempotencyKey: String,
     ): ActionResult
+
+    // --- Endpoints de Pedidos ---
+    @GET("staff/orders")
+    suspend fun getOrders(
+        @Query("status") status: String? = null,
+        @Query("limit") limit: Int = 20,
+        @Query("cursor") cursor: String? = null
+    ): StaffOrderPage
+
+    @GET("staff/orders/{orderId}")
+    suspend fun getOrder(
+        @Path("orderId") orderId: String
+    ): StaffOrder
+
+    @POST("staff/orders/{orderId}/accept")
+    suspend fun acceptOrder(
+        @Path("orderId") orderId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: AcceptOrderRequest? = null
+    ): StaffOrder
+
+    @POST("staff/orders/{orderId}/reject")
+    suspend fun rejectOrder(
+        @Path("orderId") orderId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: RejectOrderRequest
+    ): StaffOrder
+
+    // --- Endpoints de Mesas ---
+    @GET("staff/tables")
+    suspend fun getTables(): StaffTableBoard
 }

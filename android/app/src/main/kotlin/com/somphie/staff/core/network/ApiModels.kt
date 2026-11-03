@@ -96,3 +96,80 @@ data class ApiProblem(
     val code: String = "UNKNOWN_ERROR",
     val detail: String? = null,
 )
+
+// --- Pedidos Staff ---
+@Serializable
+data class StaffOrderPage(
+    val items: List<StaffOrder>,
+    val nextCursor: String? = null
+)
+
+@Serializable
+data class StaffOrder(
+    val id: String,
+    val code: String,
+    val sessionId: String,
+    val tableLabel: String,
+    val status: String, // PENDING_REVIEW, ACCEPTED, REJECTED, CANCELLED, EXPIRED
+    val createdAt: String,
+    val items: List<StaffOrderItem>,
+    val totalMinor: Long,
+    val notes: String? = null,
+    val decidedBy: OrderDecidedBy? = null,
+    val decidedAt: String? = null
+)
+
+@Serializable
+data class StaffOrderItem(
+    val id: String,
+    val productId: String,
+    val productName: String,
+    val quantity: Int,
+    val unitPriceMinor: Long,
+    val totalMinor: Long,
+    val status: String,
+    val note: String? = null,
+    val optionsSummary: String = "",
+    val productCurrentlyAvailable: Boolean = true
+)
+
+@Serializable
+data class OrderDecidedBy(
+    val userId: String? = null,
+    val displayName: String
+)
+
+@Serializable
+data class AcceptOrderRequest(
+    val excludedItems: List<ExcludedItem>? = null
+)
+
+@Serializable
+data class ExcludedItem(
+    val itemId: String,
+    val reason: String
+)
+
+@Serializable
+data class RejectOrderRequest(
+    val reasonCode: String,
+    val reasonText: String? = null
+)
+
+// --- Mesas Staff ---
+@Serializable
+data class StaffTableBoard(
+    val items: List<StaffTable>
+)
+
+@Serializable
+data class StaffTable(
+    val tableId: String,
+    val label: String,
+    val displayStatus: String, // FREE, OCCUPIED, PENDING_ORDERS, IN_SERVICE, AWAITING_PAYMENT, READY_TO_CLOSE
+    val sessionId: String? = null,
+    val openedAt: String? = null,
+    val pendingOrdersCount: Int = 0,
+    val balanceMinor: Long? = null,
+    val waiterCallActive: Boolean = false
+)

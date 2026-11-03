@@ -58,11 +58,13 @@
     <string name="dismiss_action">Volver</string>
     <string name="preparation_permission_required">Tu perfil no tiene permiso para ver colas de preparación.</string>
 
-    <!-- Textos para la pantalla 3: Inicio y navegacion Inferior -->
+    <!-- Pantallas y Navegación -->
     <string name="nav_name">Inicio</string>
     <string name="nav_orders">Pedidos</string>
     <string name="nav_tables">Mesas</string>
     <string name="nav_progile">Perfil</string>
+
+    <!-- Inicio / Panel -->
     <string name="greeting_user">Hola, %1$s</string>
     <string name="greeting_sub">Buen turno!</string>
     <string name="orders_in_progress">Pedidos (En curso)</string>
@@ -70,6 +72,40 @@
     <string name="kitchen_prep">Cocina (Preparacion)</string>
     <string name="bar_prep">Barra (Preparacion)</string>
     <string name="current_shift">Turno Actual</string>
-    <string name="shift_hour">En curso · 10:00 - 18:00</string>
+    <string name="shift_hour">En curso</string>
+
+    <!-- Pedidos -->
+    <string name="orders_title">Pedidos</string>
+    <string name="filter_in_progress">En curso(%1$d)</string>
+    <string name="filter_ready">Listos (%1$d)</string>
+    <string name="filter_all">Todos</string>
+    <string name="order_items_count">%1$d productos</string>
+
+    <!-- Detalles del pedido -->
+    <string name="order_detail_title">Detalle del pedido</string>
+    <string name="order_total">Total</string>
+    <string name="customer_notes_title">Notas del cliente</string>
+    <string name="action_accept_order">Aceptar pedido</string>
+    <string name="action_mark_ready">Marcar como listo</string>
+    <string name="action_reject_order">Rechazar pedido</string>
+    <string name="dialog_reject_title">Rechazar pedido</string>
+    <string name="dialog_reject_reason_label">Motivo de rechazo</string>
+    <string name="dialog_reject_confirm">Confirmar rechazo</string>
+
+    <!-- Mesas -->
+    <string name="tables_title">Mesas</string>
+    <string name="table_item_label">Mesa %s</string>
+    <string name="status_free">Libre</string>
+    <string name="status_occupied">Ocupada</string>
+    <string name="status_in_preparation">En preparación</string>
+    <string name="status_pending_orders">Pedidos pendientes</string>
+    <string name="status_awaiting_payment">Esperando pago</string>
+    <string name="status_ready_to_close">Lista para cerrar</string>
+
+    <!-- Motivos de rechazo -->
+    <string name="reject_reason_out_of_stock">Sin stock de insumos</string>
+    <string name="reject_reason_kitchen_overwhelmed">Cocina saturada</string>
+    <string name="reject_reason_invalid_item">Producto no disponible</string>
+    <string name="reject_reason_other">Otro motivo</string>
 
 </resources>
