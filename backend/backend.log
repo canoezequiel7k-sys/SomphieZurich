@@ -1,0 +1,79 @@
+Starting a Gradle Daemon, 1 incompatible Daemon could not be reused, use --status for details
+> Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :compileKotlin UP-TO-DATE
+> Task :compileJava NO-SOURCE
+> Task :bootBuildInfo
+> Task :processResources
+> Task :classes
+> Task :resolveMainClassName
+
+> Task :bootRun
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-11-05T17:43:02.236-03:00  INFO 21449 --- [somphie-backend] [           main] com.somphie.SomphieApplicationKt         : Starting SomphieApplicationKt using Java 25.0.4.1 with PID 21449 (/home/ezequiel/Proyectos/SomphieZurich/SomphieZurich/backend/build/classes/kotlin/main started by ezequiel in /home/ezequiel/Proyectos/SomphieZurich/SomphieZurich/backend)
+2026-11-05T17:43:02.239-03:00 DEBUG 21449 --- [somphie-backend] [           main] com.somphie.SomphieApplicationKt         : Running with Spring Boot v4.1.1, Spring v7.0.9
+2026-11-05T17:43:02.239-03:00  INFO 21449 --- [somphie-backend] [           main] com.somphie.SomphieApplicationKt         : No active profile set, falling back to 1 default profile: "dev"
+2026-11-05T17:43:03.910-03:00  INFO 21449 --- [somphie-backend] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-11-05T17:43:03.921-03:00  INFO 21449 --- [somphie-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-05T17:43:03.921-03:00  INFO 21449 --- [somphie-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-11-05T17:43:03.949-03:00  INFO 21449 --- [somphie-backend] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1654 ms
+2026-11-05T17:43:04.034-03:00 DEBUG 21449 --- [somphie-backend] [           main] com.somphie.shared.api.TraceIdFilter     : Filter 'traceIdFilter' configured for use
+2026-11-05T17:43:04.179-03:00  INFO 21449 --- [somphie-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-05T17:43:04.286-03:00  INFO 21449 --- [somphie-backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@7c206b14
+2026-11-05T17:43:04.287-03:00  INFO 21449 --- [somphie-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-05T17:43:04.313-03:00  INFO 21449 --- [somphie-backend] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/somphie (PostgreSQL 16.15)
+2026-11-05T17:43:04.373-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-11-05T17:43:04.375-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 19 migrations (execution time 00:00.014s)
+2026-11-05T17:43:04.396-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-11-05T17:43:04.440-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-11-05T17:43:04.450-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - initial foundation"
+2026-11-05T17:43:04.508-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - catalog"
+2026-11-05T17:43:04.536-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "3 - options and i18n"
+2026-11-05T17:43:04.561-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "4 - floor"
+2026-11-05T17:43:04.592-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "5 - idempotency"
+2026-11-05T17:43:04.603-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "6 - orders"
+2026-11-05T17:43:04.623-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "7 - audit"
+2026-11-05T17:43:04.640-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "8 - identity"
+2026-11-05T17:43:04.677-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "9 - order decision states"
+2026-11-05T17:43:04.692-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "10 - preparation order snapshots"
+2026-11-05T17:43:04.709-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "11 - catalog active flags"
+2026-11-05T17:43:04.721-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "12 - floor session expiry and join code limits"
+2026-11-05T17:43:04.739-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "13 - billing movements"
+2026-11-05T17:43:04.780-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "14 - waiter calls"
+2026-11-05T17:43:04.808-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "15 - durable event outbox"
+2026-11-05T17:43:04.839-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "16 - persistent catalog version"
+2026-11-05T17:43:04.847-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "17 - event retention watermark"
+2026-11-05T17:43:04.859-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "18 - staff order attribution"
+2026-11-05T17:43:04.872-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "19 - require product image alt"
+2026-11-05T17:43:04.880-03:00  INFO 21449 --- [somphie-backend] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 19 migrations to schema "public", now at version v19 (execution time 00:00.299s)
+2026-11-05T17:43:06.030-03:00  INFO 21449 --- [somphie-backend] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-11-05T17:43:06.095-03:00  INFO 21449 --- [somphie-backend] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/api/v1'
+2026-11-05T17:43:06.106-03:00  INFO 21449 --- [somphie-backend] [           main] com.somphie.SomphieApplicationKt         : Started SomphieApplicationKt in 4.297 seconds (process running for 4.605)
+2026-11-05T17:43:34.726-03:00  INFO 21449 --- [somphie-backend] [nio-8080-exec-1] o.a.c.c.C.[.[localhost].[/api/v1]        : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-05T17:43:34.726-03:00  INFO 21449 --- [somphie-backend] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-05T17:43:34.727-03:00  INFO 21449 --- [somphie-backend] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+
+> Task :bootRun FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':bootRun' (registered by plugin 'org.springframework.boot').
+> Process 'command '/usr/lib/jvm/java-25-openjdk-amd64/bin/java'' finished with non-zero exit value 137 (this value may indicate that the process was terminated with the SIGKILL signal, which is often caused by the system running out of memory)
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 28m 58s
+5 actionable tasks: 4 executed, 1 up-to-date

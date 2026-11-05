@@ -97,7 +97,6 @@
     <string name="table_item_label">Mesa %s</string>
     <string name="status_free">Libre</string>
     <string name="status_occupied">Ocupada</string>
-    <string name="status_in_preparation">En preparación</string>
     <string name="status_pending_orders">Pedidos pendientes</string>
     <string name="status_awaiting_payment">Esperando pago</string>
     <string name="status_ready_to_close">Lista para cerrar</string>

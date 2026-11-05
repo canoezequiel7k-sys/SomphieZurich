@@ -32,7 +32,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import com.somphie.staff.R
 import com.somphie.staff.core.network.StaffOrder
 
+// Pantalla de Bandeja de Pedidos
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InboxScreen(
@@ -51,6 +51,7 @@ fun InboxScreen(
     val state by viewModel.uiState.collectAsState()
 
     Scaffold(
+        // Barra superior (TopAppBar) de Pedidos
         topBar = {
             TopAppBar(
                 title = {
@@ -59,10 +60,9 @@ fun InboxScreen(
                         fontWeight = FontWeight.Bold
                     )
                 },
+                // Boton de volver atras
                 navigationIcon = {
-                    IconButton(
-                        onClick = onNavigateBack
-                    ) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Volver"
@@ -78,43 +78,48 @@ fun InboxScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            when(val current = state){
-                is InboxUiState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+            when (val current = state) {
+                // Indicador de carga centrado
+                is InboxUiState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-                is InboxUiState.Error -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+                // Mensaje de error
+                is InboxUiState.Error -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = current.message, color = MaterialTheme.colorScheme.error)
                 }
                 is InboxUiState.Success -> {
-                    //Filtros de vista
+                    // Barra de filtros de vista (En curso, Listos, Todos)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        // Filtro "En curso"
                         FilterChip(
                             selected = current.filter == OrderFilter.IN_PROGRESS,
                             onClick = { viewModel.loadOrders(OrderFilter.IN_PROGRESS) },
                             label = { Text(stringResource(R.string.filter_in_progress, current.inProgressCount)) }
                         )
+                        // Filtro "Listos"
                         FilterChip(
                             selected = current.filter == OrderFilter.READY,
                             onClick = { viewModel.loadOrders(OrderFilter.READY) },
                             label = { Text(stringResource(R.string.filter_ready, current.readyCount)) }
                         )
+                        // Filtro "Todos"
                         FilterChip(
                             selected = current.filter == OrderFilter.ALL,
                             onClick = { viewModel.loadOrders(OrderFilter.ALL) },
                             label = { Text(stringResource(R.string.filter_all)) }
                         )
                     }
-                    //Lista de pedidos por mesa
+                    // Lista scrolleable de pedidos por mesa
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
-                        items(current.orders, key = {it.id}) { order ->
+                        items(current.orders, key = { it.id }) { order ->
                             OrderCard(order = order, onClick = { onOrderClick(order.id) })
                         }
                     }
@@ -124,6 +129,7 @@ fun InboxScreen(
     }
 }
 
+// Tarjeta individual de pedido
 @Composable
 private fun OrderCard(
     order: StaffOrder,
@@ -139,19 +145,21 @@ private fun OrderCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Numero de mesa
                 Text(
                     text = stringResource(R.string.table_item_label, order.tableLabel),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
+                // Badge / Insignia de estado del pedido
                 OrderStatusBadge(status = order.status)
             }
             Spacer(modifier = Modifier.height(8.dp))
+            // Lista de items / productos del pedido
             order.items.forEach { item ->
                 Text(
                     text = "${item.quantity} x ${item.productName}",
@@ -163,12 +171,13 @@ private fun OrderCard(
     }
 }
 
+// Badge de estado con color segun el estado
 @Composable
 fun OrderStatusBadge(status: String) {
-    val (bgColor, textColor, label) = when(status){
-        "PENDING_REVIEW" -> Triple(Color(0xFFE6BEA5), Color(0xFF5C3317), "En espera")
-        "ACCEPTED" -> Triple(Color(0xFFD4A373), Color(0xFF4A2810), "En preparación")
-        "READY" -> Triple(Color(0xFF61715B), Color(0xFFFFFFFF), "Listo")
+    val (bgColor, textColor, label) = when (status) {
+        "PENDING_REVIEW" -> Triple(com.somphie.staff.core.design.StaffColors.StatusPendingBg, com.somphie.staff.core.design.StaffColors.StatusPendingText, "En espera")
+        "ACCEPTED" -> Triple(com.somphie.staff.core.design.StaffColors.StatusInPrepBg, com.somphie.staff.core.design.StaffColors.StatusInPrepText, "En preparación")
+        "READY" -> Triple(com.somphie.staff.core.design.StaffColors.StatusReadyBg, com.somphie.staff.core.design.StaffColors.StatusReadyText, "Listo")
         else -> Triple(Color.Gray, Color.White, status)
     }
 

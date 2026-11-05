@@ -1,0 +1,65 @@
+package com.somphie.staff.feature.orders.ui
+
+import com.somphie.staff.core.network.AcceptOrderRequest
+import com.somphie.staff.core.network.CancelItemRequest
+import com.somphie.staff.core.network.ChangePasswordRequest
+import com.somphie.staff.core.network.LoginRequest
+import com.somphie.staff.core.network.RefreshRequest
+import com.somphie.staff.core.network.RejectOrderRequest
+import com.somphie.staff.core.network.StaffApi
+import com.somphie.staff.core.network.StaffOrder
+import com.somphie.staff.core.network.StaffOrderPage
+import com.somphie.staff.core.network.StaffTable
+import com.somphie.staff.core.network.StaffTableBoard
+import java.io.IOException
+
+class FakeStaffApi : StaffApi {
+    var ordersPage = StaffOrderPage(items = emptyList())
+    var orderDetail: StaffOrder? = null
+    var tablesList: List<StaffTable> = emptyList()
+    var shouldFail = false
+    var lastAcceptedOrderId: String? = null
+    var lastRejectedOrderId: String? = null
+    var lastRejectReasonCode: String? = null
+
+    override suspend fun getOrders(status: String?, limit: Int, cursor: String?): StaffOrderPage {
+        if (shouldFail) throw IOException("Error de red simulado")
+        return ordersPage
+    }
+
+    override suspend fun getOrder(orderId: String): StaffOrder {
+        if (shouldFail) throw IOException("Error al obtener detalle")
+        return orderDetail ?: throw IllegalStateException("Order not found")
+    }
+
+    override suspend fun acceptOrder(orderId: String, idempotencyKey: String, request: AcceptOrderRequest?): StaffOrder {
+        if (shouldFail) throw IOException("Error al aceptar pedido")
+        lastAcceptedOrderId = orderId
+        return orderDetail ?: throw IllegalStateException("Order not found")
+    }
+
+    override suspend fun rejectOrder(orderId: String, idempotencyKey: String, request: RejectOrderRequest): StaffOrder {
+        if (shouldFail) throw IOException("Error al rechazar pedido")
+        lastRejectedOrderId = orderId
+        lastRejectReasonCode = request.reasonCode
+        return orderDetail ?: throw IllegalStateException("Order not found")
+    }
+
+    override suspend fun getTables(): StaffTableBoard {
+        if (shouldFail) throw IOException("Error al obtener mesas")
+        return StaffTableBoard(items = tablesList)
+    }
+
+    override suspend fun login(request: LoginRequest) = error("Unused")
+    override fun refresh(request: RefreshRequest) = error("Unused")
+    override suspend fun logout(request: RefreshRequest) = error("Unused")
+    override suspend fun changePassword(request: ChangePasswordRequest) = error("Unused")
+    override suspend fun me() = error("Unused")
+    override suspend fun stations() = error("Unused")
+    override suspend fun queue(stationId: String, statuses: String, limit: Int, cursor: String?) = error("Unused")
+    override suspend fun startItem(itemId: String, idempotencyKey: String) = error("Unused")
+    override suspend fun markReady(itemId: String, idempotencyKey: String) = error("Unused")
+    override suspend fun deliver(itemId: String, idempotencyKey: String) = error("Unused")
+    override suspend fun cancel(itemId: String, idempotencyKey: String, request: CancelItemRequest) = error("Unused")
+    override suspend fun undo(itemId: String, idempotencyKey: String) = error("Unused")
+}
