@@ -187,7 +187,7 @@ fun HomeScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
+
             //Accesos rapidos (Grid 2x2)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -210,7 +210,7 @@ fun HomeScreen(
                     modifier = Modifier.weight(1f)
                 )
             }
-            
+
             //Turno Actual
             Card(
                 modifier = Modifier.fillMaxWidth(),

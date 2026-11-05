@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -48,7 +49,7 @@ fun OrderDetailScreen(
     onNavigateBack: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
-    val showRejectDialog = remember { mutableStateOf(false) }
+    var showRejectDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(orderId) {
         viewModel.loadOrderDetail(orderId)
@@ -241,6 +242,10 @@ private fun RejectOrderDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit
     )
 }
 
-private fun formatMoney(minor: Long): String {
-    return String.format(Locale.US, "$%.2f", minor / 100.0)
+fun formatMoney(minor: Long): String {
+    val sign = if (minor < 0) "-" else ""
+    val absMinor = kotlin.math.abs(minor)
+    val dollars = absMinor / 100
+    val cents = absMinor % 100
+    return "$sign$$dollars.${cents.toString().padStart(2, '0')}"
 }

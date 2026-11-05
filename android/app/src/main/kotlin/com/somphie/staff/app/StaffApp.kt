@@ -51,10 +51,12 @@ fun StaffApp(viewModel: AuthViewModel) {
             // Muestra la pantalla operativa cuando el usuario ya inicio sesion
             is AuthUiState.SignedIn -> HomeScreen(
                 profile = current.profile,
-                onNavigateToOrders = {},
-                onNavigateToTables = {},
-                onNavigateToKitchen = {},
-                onNavigateToBar = {},
+                onNavigateToKitchen = {
+                    // Navegar o abrir cola de Cocina
+                },
+                onNavigateToBar = {
+                    // Navegar o abrir cola de Barra
+                },
                 onNavigateToProfile = viewModel::signOut
             )
 
