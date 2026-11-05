@@ -35,7 +35,7 @@ class InboxViewModel @Inject constructor(
         loadOrders()
     }
 
-    private fun loadOrders(
+    fun loadOrders(
         filter: OrderFilter = OrderFilter.IN_PROGRESS
     ) {
         viewModelScope.launch {
