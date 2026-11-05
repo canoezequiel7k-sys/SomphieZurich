@@ -2,6 +2,12 @@
 
 Aplicación nativa Kotlin/Compose para que el personal opere los pedidos desde las estaciones que el backend le asigna. La primera entrega cubre el login de personal y el flujo de preparación de Fase 5; no reemplaza la validación de permisos del servidor.
 
+## Vista previa
+
+<p align="center">
+  <img src="./docs/images/home_screen.png" alt="Pantalla de Inicio (HomeScreen)" width="300" />
+</p>
+
 Para estudiar responsabilidades, flujo de datos, permisos, pruebas y lectura progresiva del módulo, consultá la [guía de arquitectura y estudio](./docs/ARCHITECTURE_AND_STUDY_GUIDE.md).
 
 Para el plan detallado de pantallas, dependencias y pasos de implementación personal, consultá el [roadmap Android](./docs/ROADMAP_ANDROID_DEV.md).

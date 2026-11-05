@@ -82,7 +82,8 @@ fun HomeScreen(
                     Text(
                         text = "Somphie Zúrich",
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
                     )
                 },
                 // Boton de menu hamburguesa
@@ -102,7 +103,7 @@ fun HomeScreen(
         // Barra de navegacion inferior (4 pestañas: Inicio, Pedidos, Mesas, Perfil)
         bottomBar = {
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = Color.White,
                 tonalElevation = 8.dp
             ) {
                 // Pestaña 0: Inicio
@@ -217,6 +218,8 @@ private fun DashboardContent(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Fila de encabezado: Saludo a la izquierda + Chip de estacion a la derecha
         Row(
             modifier = Modifier
@@ -234,7 +237,8 @@ private fun DashboardContent(
                 )
                 Text(
                     text = "¡Buen turno!",
-                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -307,26 +311,26 @@ private fun DashboardContent(
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Card del turno actual
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                containerColor = Color.White
             )
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Horario del turno
                 Column {
-                    Text("Turno actual", style = MaterialTheme.typography.labelMedium)
-                    Text("10:00 - 18:00", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text("Turno actual:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("10:00 - 18:00", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                 }
                 // Badge con el estado del turno
                 SuggestionChip(
@@ -338,8 +342,6 @@ private fun DashboardContent(
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -356,7 +358,7 @@ private fun HomeDashboardCard(
     Card(
         onClick = onClick,
         modifier = modifier.height(152.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Box(modifier = Modifier.fillMaxSize().padding(12.dp)) {
             // Badge / contador flotante (notificacion si count > 0)
@@ -366,7 +368,7 @@ private fun HomeDashboardCard(
                     contentColor = Color.White,
                     modifier = Modifier.align(Alignment.TopEnd)
                 ) {
-                    Text("$badgeCount", fontWeight = FontWeight.Bold)
+                    Text("$badgeCount", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
             Column(
@@ -376,8 +378,8 @@ private fun HomeDashboardCard(
                 // Icono del acceso rapido
                 Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 // Titulo y subtitulo
-                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, fontSize = 16.sp)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
             }
         }
     }
