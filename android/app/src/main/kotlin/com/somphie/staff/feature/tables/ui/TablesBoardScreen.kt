@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,9 +39,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.somphie.staff.R
+import com.somphie.staff.core.design.SomphieTheme
+import com.somphie.staff.core.design.StaffColors
 import com.somphie.staff.core.network.StaffTable
 
 // Pantalla de Tablero de Mesas
@@ -48,27 +52,50 @@ import com.somphie.staff.core.network.StaffTable
 @Composable
 fun TablesBoardScreen(
     viewModel: TablesViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    showTopBar: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsState()
 
+    TablesBoardContent(
+        state = state,
+        onNavigateBack = onNavigateBack,
+        onRefresh = { viewModel.loadTables() },
+        showTopBar = showTopBar
+    )
+}
+
+// Contenido desacoplado del tablero de Mesas para soportar Preview
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TablesBoardContent(
+    state: TablesUiState,
+    onNavigateBack: () -> Unit,
+    onRefresh: () -> Unit,
+    showTopBar: Boolean = true
+) {
     Scaffold(
-        // Barra superior con titulo, boton de volver y boton de refrescar
+        // Barra superior opcional (solo si showTopBar es true)
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.tables_title), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                actions = {
-                    // Boton de refrescar tablero
-                    IconButton(onClick = { viewModel.loadTables() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refrescar")
-                    }
-                }
-            )
+            if (showTopBar) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.tables_title), fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        }
+                    },
+                    actions = {
+                        // Boton de refrescar tablero
+                        IconButton(onClick = onRefresh) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Refrescar")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
+                )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -78,31 +105,31 @@ fun TablesBoardScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            when (val current = state) {
-                // Indicador de carga
+            when (state) {
+                // Indicador de carga centrado
                 is TablesUiState.Loading -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
                 // Mensaje de error
                 is TablesUiState.Error -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(current.message, color = MaterialTheme.colorScheme.error)
+                    Text(state.message, color = MaterialTheme.colorScheme.error)
                 }
                 is TablesUiState.Success -> {
-                    // Cuadrícula 3xN con la lista de mesas
+                    // Cuadrícula 3xN con las tarjetas de cada mesa
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(3),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        items(current.tables, key = { it.tableId }) { table ->
+                        items(state.tables, key = { it.tableId }) { table ->
                             TableCard(table = table)
                         }
                     }
                 }
             }
 
-            // Leyenda visual al pie (Colores por estado: Libre, Ocupada, En preparación)
+            // Leyenda visual al pie con circulos de color por estado (Libre, Ocupada, En preparación)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -110,9 +137,9 @@ fun TablesBoardScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                LegendItem(color = com.somphie.staff.core.design.StaffColors.Sage, label = stringResource(R.string.status_free))
-                LegendItem(color = com.somphie.staff.core.design.StaffColors.StatusInPrepBg, label = stringResource(R.string.status_occupied))
-                LegendItem(color = com.somphie.staff.core.design.StaffColors.BadgeBrown, label = stringResource(R.string.status_in_preparation))
+                LegendItem(color = StaffColors.Sage, label = stringResource(R.string.status_free))
+                LegendItem(color = StaffColors.StatusPendingText, label = stringResource(R.string.status_occupied))
+                LegendItem(color = StaffColors.StatusReadyBg, label = stringResource(R.string.status_in_preparation))
             }
         }
     }
@@ -123,12 +150,12 @@ fun TablesBoardScreen(
 private fun TableCard(table: StaffTable) {
     // Mapeo de colores y textos segun el estado contractual de la mesa
     val (bgColor, textColor, statusText) = when (table.displayStatus) {
-        "FREE" -> Triple(com.somphie.staff.core.design.StaffColors.Cream, com.somphie.staff.core.design.StaffColors.Coffee, stringResource(R.string.status_free))
-        "OCCUPIED" -> Triple(com.somphie.staff.core.design.StaffColors.StatusPendingBg, com.somphie.staff.core.design.StaffColors.StatusPendingText, stringResource(R.string.status_occupied))
-        "PENDING_ORDERS" -> Triple(com.somphie.staff.core.design.StaffColors.StatusInPrepBg, com.somphie.staff.core.design.StaffColors.StatusInPrepText, stringResource(R.string.status_pending_orders))
-        "IN_SERVICE" -> Triple(com.somphie.staff.core.design.StaffColors.Sage, Color.White, stringResource(R.string.status_in_preparation))
-        "AWAITING_PAYMENT" -> Triple(com.somphie.staff.core.design.StaffColors.Caramel, Color.White, stringResource(R.string.status_awaiting_payment))
-        "READY_TO_CLOSE" -> Triple(com.somphie.staff.core.design.StaffColors.BlueGray, Color.White, stringResource(R.string.status_ready_to_close))
+        "FREE" -> Triple(Color.White, StaffColors.Coffee, stringResource(R.string.status_free))
+        "OCCUPIED" -> Triple(StaffColors.StatusPendingBg, StaffColors.StatusPendingText, stringResource(R.string.status_occupied))
+        "PENDING_ORDERS" -> Triple(StaffColors.StatusInPrepBg, StaffColors.StatusInPrepText, stringResource(R.string.status_pending_orders))
+        "IN_SERVICE" -> Triple(StaffColors.Sage, Color.White, stringResource(R.string.status_in_preparation))
+        "AWAITING_PAYMENT" -> Triple(StaffColors.Caramel, Color.White, stringResource(R.string.status_awaiting_payment))
+        "READY_TO_CLOSE" -> Triple(StaffColors.BlueGray, Color.White, stringResource(R.string.status_ready_to_close))
         else -> Triple(Color.LightGray, Color.Black, table.displayStatus)
     }
 
@@ -145,35 +172,66 @@ private fun TableCard(table: StaffTable) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Numero o etiqueta de la mesa
+            // Numero o etiqueta de la mesa (ej: 1, 2, 4)
             Text(
                 text = table.label,
-                fontSize = 22.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = textColor
             )
             Spacer(modifier = Modifier.height(4.dp))
-            // Texto del estado de la mesa
+            // Texto descriptivo del estado de la mesa (ej: Libre, Ocupada, En preparación)
             Text(
                 text = statusText,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                color = textColor.copy(alpha = 0.8f)
+                color = textColor.copy(alpha = 0.9f)
             )
         }
     }
 }
 
-// Item de leyenda con punto de color y texto
+// Item de leyenda con circulo de color y texto
 @Composable
 private fun LegendItem(color: Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
+        // Circulo indicador de color
         Box(
             modifier = Modifier
-                .size(10.dp)
+                .size(12.dp)
                 .background(color, shape = CircleShape)
         )
         Spacer(modifier = Modifier.width(6.dp))
-        Text(text = label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // Etiqueta del estado
+        Text(text = label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = StaffColors.Coffee)
+    }
+}
+
+// Preview para Android Studio (Split / Design tab)
+@Preview(showBackground = true)
+@Composable
+fun TablesBoardScreenPreview() {
+    SomphieTheme {
+        TablesBoardContent(
+            state = TablesUiState.Success(
+                tables = listOf(
+                    StaffTable("t1", "1", "FREE"),
+                    StaffTable("t2", "2", "OCCUPIED"),
+                    StaffTable("t3", "3", "OCCUPIED"),
+                    StaffTable("t4", "4", "IN_SERVICE"),
+                    StaffTable("t5", "5", "FREE"),
+                    StaffTable("t6", "6", "OCCUPIED"),
+                    StaffTable("t7", "7", "OCCUPIED"),
+                    StaffTable("t8", "8", "FREE"),
+                    StaffTable("t9", "9", "IN_SERVICE"),
+                    StaffTable("t10", "10", "FREE"),
+                    StaffTable("t11", "11", "OCCUPIED"),
+                    StaffTable("t12", "12", "FREE")
+                )
+            ),
+            onNavigateBack = {},
+            onRefresh = {},
+            showTopBar = true
+        )
     }
 }

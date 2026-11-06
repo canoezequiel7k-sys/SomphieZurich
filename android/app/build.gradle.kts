@@ -22,7 +22,7 @@ android {
     buildTypes {
         debug {
             val configuredUrl = providers.gradleProperty("somphieApiBaseUrl")
-                .orElse("http://10.0.2.2:8080/api/v1/")
+                .orElse("http://localhost:8080/api/v1/")
                 .get()
             buildConfigField("String", "API_BASE_URL", "\"$configuredUrl\"")
             manifestPlaceholders["allowCleartextTraffic"] = "true"

@@ -20,6 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,10 +37,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.somphie.staff.R
+import com.somphie.staff.core.design.SomphieTheme
+import com.somphie.staff.core.design.StaffColors
 import com.somphie.staff.core.network.StaffOrder
+import com.somphie.staff.core.network.StaffOrderItem
 
 // Pantalla de Bandeja de Pedidos
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,30 +52,56 @@ import com.somphie.staff.core.network.StaffOrder
 fun InboxScreen(
     viewModel: InboxViewModel,
     onNavigateBack: () -> Unit,
-    onOrderClick: (String) -> Unit
+    onOrderClick: (String) -> Unit,
+    showTopBar: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsState()
 
+    InboxContent(
+        state = state,
+        onNavigateBack = onNavigateBack,
+        onFilterChange = { viewModel.loadOrders(it) },
+        onOrderClick = onOrderClick,
+        showTopBar = showTopBar
+    )
+}
+
+// Contenido desacoplado de la pantalla de Pedidos para soportar Preview y contenedores con TopBar propia
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InboxContent(
+    state: InboxUiState,
+    onNavigateBack: () -> Unit,
+    onFilterChange: (OrderFilter) -> Unit,
+    onOrderClick: (String) -> Unit,
+    showTopBar: Boolean = true
+) {
     Scaffold(
-        // Barra superior (TopAppBar) de Pedidos
+        // Barra superior opcional (solo si showTopBar es true)
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.orders_title),
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                // Boton de volver atras
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver"
+            if (showTopBar) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.orders_title),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
                         )
-                    }
-                }
-            )
+                    },
+                    // Boton de volver atras
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Volver"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
+                )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -78,48 +110,67 @@ fun InboxScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            when (val current = state) {
+            when (state) {
                 // Indicador de carga centrado
                 is InboxUiState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
                 // Mensaje de error
                 is InboxUiState.Error -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = current.message, color = MaterialTheme.colorScheme.error)
+                    Text(text = state.message, color = MaterialTheme.colorScheme.error)
                 }
                 is InboxUiState.Success -> {
-                    // Barra de filtros de vista (En curso, Listos, Todos)
+                    // Barra de capsulas de filtro de vista (En curso, Listos, Todos)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Filtro "En curso"
+                        // Capsula de Filtro "En curso (5)"
                         FilterChip(
-                            selected = current.filter == OrderFilter.IN_PROGRESS,
-                            onClick = { viewModel.loadOrders(OrderFilter.IN_PROGRESS) },
-                            label = { Text(stringResource(R.string.filter_in_progress, current.inProgressCount)) }
+                            selected = state.filter == OrderFilter.IN_PROGRESS,
+                            onClick = { onFilterChange(OrderFilter.IN_PROGRESS) },
+                            label = { Text(stringResource(R.string.filter_in_progress, state.inProgressCount), fontWeight = FontWeight.Medium) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = StaffColors.Coffee,
+                                selectedLabelColor = Color.White,
+                                containerColor = Color.White,
+                                labelColor = StaffColors.Coffee
+                            )
                         )
-                        // Filtro "Listos"
+                        // Capsula de Filtro "Listos (2)"
                         FilterChip(
-                            selected = current.filter == OrderFilter.READY,
-                            onClick = { viewModel.loadOrders(OrderFilter.READY) },
-                            label = { Text(stringResource(R.string.filter_ready, current.readyCount)) }
+                            selected = state.filter == OrderFilter.READY,
+                            onClick = { onFilterChange(OrderFilter.READY) },
+                            label = { Text(stringResource(R.string.filter_ready, state.readyCount), fontWeight = FontWeight.Medium) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = StaffColors.Coffee,
+                                selectedLabelColor = Color.White,
+                                containerColor = Color.White,
+                                labelColor = StaffColors.Coffee
+                            )
                         )
-                        // Filtro "Todos"
+                        // Capsula de Filtro "Todos"
                         FilterChip(
-                            selected = current.filter == OrderFilter.ALL,
-                            onClick = { viewModel.loadOrders(OrderFilter.ALL) },
-                            label = { Text(stringResource(R.string.filter_all)) }
+                            selected = state.filter == OrderFilter.ALL,
+                            onClick = { onFilterChange(OrderFilter.ALL) },
+                            label = { Text(stringResource(R.string.filter_all), fontWeight = FontWeight.Medium) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = StaffColors.Coffee,
+                                selectedLabelColor = Color.White,
+                                containerColor = Color.White,
+                                labelColor = StaffColors.Coffee
+                            )
                         )
                     }
+
                     // Lista scrolleable de pedidos por mesa
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
-                        items(current.orders, key = { it.id }) { order ->
+                        items(state.orders, key = { it.id }) { order ->
                             OrderCard(order = order, onClick = { onOrderClick(order.id) })
                         }
                     }
@@ -129,7 +180,7 @@ fun InboxScreen(
     }
 }
 
-// Tarjeta individual de pedido
+// Tarjeta individual de pedido de cada mesa
 @Composable
 private fun OrderCard(
     order: StaffOrder,
@@ -140,44 +191,59 @@ private fun OrderCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = Color.White
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Encabezado de la tarjeta: Nombre de Mesa + Badge de Estado
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Numero de mesa
+                // Numero o Etiqueta de Mesa (ej: Mesa 4)
                 Text(
                     text = stringResource(R.string.table_item_label, order.tableLabel),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
                 )
-                // Badge / Insignia de estado del pedido
+                // Badge / Pastilla de estado del pedido (ej. "En preparación", "En espera")
                 OrderStatusBadge(status = order.status)
             }
+
+            // Horario del pedido (ej: 12:34)
+            val timeText = if (order.createdAt.length >= 16) order.createdAt.substring(11, 16) else "12:34"
+            Text(
+                text = timeText,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
-            // Lista de items / productos del pedido
+
+            // Lista de items / productos solicitados en este pedido
             order.items.forEach { item ->
                 Text(
                     text = "${item.quantity} x ${item.productName}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    fontWeight = FontWeight.Medium,
+                    color = StaffColors.Coffee,
+                    fontSize = 14.sp
                 )
             }
         }
     }
 }
 
-// Badge de estado con color segun el estado
+// Badge de estado con color e indicacion visual
 @Composable
 fun OrderStatusBadge(status: String) {
     val (bgColor, textColor, label) = when (status) {
-        "PENDING_REVIEW" -> Triple(com.somphie.staff.core.design.StaffColors.StatusPendingBg, com.somphie.staff.core.design.StaffColors.StatusPendingText, "En espera")
-        "ACCEPTED" -> Triple(com.somphie.staff.core.design.StaffColors.StatusInPrepBg, com.somphie.staff.core.design.StaffColors.StatusInPrepText, "En preparación")
-        "READY" -> Triple(com.somphie.staff.core.design.StaffColors.StatusReadyBg, com.somphie.staff.core.design.StaffColors.StatusReadyText, "Listo")
+        "PENDING_REVIEW" -> Triple(StaffColors.StatusPendingBg, StaffColors.StatusPendingText, "En espera")
+        "ACCEPTED" -> Triple(StaffColors.StatusInPrepBg, StaffColors.StatusInPrepText, "En preparación")
+        "READY" -> Triple(StaffColors.StatusReadyBg, StaffColors.StatusReadyText, "Listo")
         else -> Triple(Color.Gray, Color.White, status)
     }
 
@@ -190,7 +256,105 @@ fun OrderStatusBadge(status: String) {
             color = textColor,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+        )
+    }
+}
+
+// Vista previa para Android Studio (Split / Design tab)
+//@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun InboxScreenPreview() {
+    SomphieTheme {
+        InboxContent(
+            state = InboxUiState.Success(
+                orders = listOf(
+                    StaffOrder(
+                        id = "1",
+                        code = "#001",
+                        sessionId = "s1",
+                        tableLabel = "4",
+                        status = "ACCEPTED",
+                        createdAt = "2026-10-18T12:34:00Z",
+                        items = listOf(
+                            StaffOrderItem("i1", "p1", "Latte", 2, 320, 640, "ACCEPTED"),
+                            StaffOrderItem("i2", "p2", "Tostado mixto", 1, 450, 450, "ACCEPTED")
+                        ),
+                        totalMinor = 1090
+                    ),
+                    StaffOrder(
+                        id = "2",
+                        code = "#002",
+                        sessionId = "s2",
+                        tableLabel = "7",
+                        status = "ACCEPTED",
+                        createdAt = "2026-10-18T12:40:00Z",
+                        items = listOf(
+                            StaffOrderItem("i3", "p3", "Cappuccino", 1, 350, 350, "ACCEPTED"),
+                            StaffOrderItem("i4", "p4", "Medialuna", 1, 200, 200, "ACCEPTED")
+                        ),
+                        totalMinor = 550
+                    ),
+                    StaffOrder(
+                        id = "3",
+                        code = "#003",
+                        sessionId = "s3",
+                        tableLabel = "10",
+                        status = "PENDING_REVIEW",
+                        createdAt = "2026-10-18T12:52:00Z",
+                        items = listOf(
+                            StaffOrderItem("i5", "p5", "Café espresso", 3, 250, 750, "PENDING_REVIEW"),
+                            StaffOrderItem("i6", "p2", "Tostado mixto", 1, 450, 450, "PENDING_REVIEW")
+                        ),
+                        totalMinor = 1200
+                    ),
+                    StaffOrder(
+                        id = "4",
+                        code = "#004",
+                        sessionId = "s5",
+                        tableLabel = "12",
+                        status = "PENDING_REVIEW",
+                        createdAt = "2026-10-18T12:52:00Z",
+                        items = listOf(
+                            StaffOrderItem("i5", "p5", "Café espresso", 3, 250, 750, "PENDING_REVIEW"),
+                            StaffOrderItem("i6", "p2", "Tostado mixto", 1, 450, 450, "PENDING_REVIEW")
+                        ),
+                        totalMinor = 1200
+                    ),
+                    StaffOrder(
+                        id = "5",
+                        code = "#005",
+                        sessionId = "s5",
+                        tableLabel = "2",
+                        status = "EXPIRED",
+                        createdAt = "2026-10-18T12:52:00Z",
+                        items = listOf(
+                            StaffOrderItem("i5", "p5", "Café espresso", 3, 250, 750, "EXPIRED"),
+                            StaffOrderItem("i6", "p2", "Tostado mixto", 1, 450, 450, "EXPIRED")
+                        ),
+                        totalMinor = 1200
+                    ),
+                    StaffOrder(
+                        id = "6",
+                        code = "#006",
+                        sessionId = "s6",
+                        tableLabel = "1",
+                        status = "PENDING_REVIEW",
+                        createdAt = "2026-10-18T12:52:00Z",
+                        items = listOf(
+                            StaffOrderItem("i5", "p5", "Café espresso", 3, 250, 750, "PENDING_REVIEW"),
+                            StaffOrderItem("i6", "p2", "Tostado mixto", 1, 450, 450, "PENDING_REVIEW")
+                        ),
+                        totalMinor = 1200
+                    )
+                ),
+                inProgressCount = 5,
+                readyCount = 2,
+                filter = OrderFilter.IN_PROGRESS
+            ),
+            onNavigateBack = {},
+            onFilterChange = {},
+            onOrderClick = {}
         )
     }
 }

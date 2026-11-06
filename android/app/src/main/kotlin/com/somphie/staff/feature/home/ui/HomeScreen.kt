@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Menu
@@ -43,11 +44,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.somphie.staff.R
 import com.somphie.staff.core.design.StaffColors
 import com.somphie.staff.core.network.StaffProfile
 import com.somphie.staff.feature.orders.ui.InboxScreen
@@ -57,7 +60,7 @@ import com.somphie.staff.feature.orders.ui.OrderDetailViewModel
 import com.somphie.staff.feature.tables.ui.TablesBoardScreen
 import com.somphie.staff.feature.tables.ui.TablesViewModel
 
-// Pantalla principal / Panel del turno
+// Pantalla principal / Contenedor operativo con TopAppBar dinamico
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -65,34 +68,56 @@ fun HomeScreen(
     onNavigateToKitchen: () -> Unit,
     onNavigateToBar: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    pendingOrdersCount: Int = 5, // Contador configurable de pedidos pendientes
-    activeTablesCount: Int = 3  // Contador configurable de mesas activas
+    pendingOrdersCount: Int = 5,
+    activeTablesCount: Int = 3
 ) {
-    // Estado local de pestaña activa: 0 = Inicio, 1 = Pedidos, 2 = Mesas, 3 = Perfil
+    // Estado de pestaña activa: 0 = Inicio, 1 = Pedidos, 2 = Mesas, 3 = Perfil
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    // Sub-estado para abrir el detalle de un pedido
+    // Sub-estado para ver el detalle de un pedido
     var selectedOrderId by rememberSaveable { mutableStateOf<String?>(null) }
 
     Scaffold(
-        // Barra superior (TopAppBar) con el menu
+        // TopAppBar dinamico que cambia el titulo e icono segun la pantalla visible
         topBar = {
             TopAppBar(
+                // Titulo dinamico segun la seccion activa
                 title = {
+                    val titleText = when {
+                        selectedOrderId != null -> stringResource(R.string.order_detail_title)
+                        selectedTab == 1 -> stringResource(R.string.orders_title)
+                        selectedTab == 2 -> stringResource(R.string.tables_title)
+                        else -> "Somphie Zúrich"
+                    }
                     Text(
-                        text = "Somphie Zúrich",
+                        text = titleText,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp
+                        fontSize = 18.sp
                     )
                 },
-                // Boton de menu hamburguesa
+                // Icono de navegacion: ArrowBack para volver, Menu hamburguesa solo en Inicio
                 navigationIcon = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "Menu"
-                        )
+                    if (selectedOrderId != null || selectedTab != 0) {
+                        IconButton(onClick = {
+                            if (selectedOrderId != null) {
+                                selectedOrderId = null // Vuelve a la lista de pedidos
+                            } else {
+                                selectedTab = 0 // Vuelve al panel de Inicio
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Volver"
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu"
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -153,7 +178,7 @@ fun HomeScreen(
             }
         }
     ) { innerPadding ->
-        // Contenido principal que cambia segun la pestaña o sub-pantalla
+        // Contenido dinamico segun la seccion o sub-pantalla activa
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -165,7 +190,8 @@ fun HomeScreen(
                 OrderDetailScreen(
                     orderId = selectedOrderId!!,
                     viewModel = orderDetailViewModel,
-                    onNavigateBack = { selectedOrderId = null }
+                    onNavigateBack = { selectedOrderId = null },
+                    showTopBar = false
                 )
             } else {
                 when (selectedTab) {
@@ -184,7 +210,8 @@ fun HomeScreen(
                         InboxScreen(
                             viewModel = inboxViewModel,
                             onNavigateBack = { selectedTab = 0 },
-                            onOrderClick = { orderId -> selectedOrderId = orderId }
+                            onOrderClick = { orderId -> selectedOrderId = orderId },
+                            showTopBar = false
                         )
                     }
                     2 -> {
@@ -385,7 +412,8 @@ private fun HomeDashboardCard(
     }
 }
 
-// Preview del contenido principal para Android Studio (Vista Previa Visual)
+// Preview del contenido principal para Android Studio
+@Preview
 @Composable
 fun DashboardContentPreview() {
     com.somphie.staff.core.design.SomphieTheme {
