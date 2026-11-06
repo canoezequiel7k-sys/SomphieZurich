@@ -112,4 +112,9 @@
     <string name="bar_title">Barra</string>
     <string name="estimated_time_min">%1$d min</string>
 
+    <!-- Perfil -->
+    <string name="profile_title">Perfil</string>
+    <string name="change_station_label">Cambiar estación</string>
+    <string name="help_label">Ayuda</string>
+
 </resources>

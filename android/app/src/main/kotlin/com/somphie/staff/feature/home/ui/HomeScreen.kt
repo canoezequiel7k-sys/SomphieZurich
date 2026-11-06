@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SoupKitchen
 import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.AssistChip
@@ -87,6 +88,7 @@ fun HomeScreen(
                         selectedOrderId != null -> stringResource(R.string.order_detail_title)
                         selectedTab == 1 -> stringResource(R.string.orders_title)
                         selectedTab == 2 -> stringResource(R.string.tables_title)
+                        selectedTab == 3 -> stringResource(R.string.profile_title)
                         else -> "Somphie Zúrich"
                     }
                     Text(
@@ -96,9 +98,9 @@ fun HomeScreen(
                         fontSize = 18.sp
                     )
                 },
-                // Icono de navegacion: ArrowBack para volver, Menu hamburguesa solo en Inicio
+                // Icono de navegacion: ArrowBack para volver, Settings en Perfil, Menu hamburguesa en Inicio
                 navigationIcon = {
-                    if (selectedOrderId != null || selectedTab != 0) {
+                    if (selectedOrderId != null || (selectedTab != 0 && selectedTab != 3)) {
                         IconButton(onClick = {
                             if (selectedOrderId != null) {
                                 selectedOrderId = null // Vuelve a la lista de pedidos
@@ -109,6 +111,13 @@ fun HomeScreen(
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
                                 contentDescription = "Volver"
+                            )
+                        }
+                    } else if (selectedTab == 3) {
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Configuración"
                             )
                         }
                     } else {
@@ -170,7 +179,6 @@ fun HomeScreen(
                     onClick = {
                         selectedTab = 3
                         selectedOrderId = null
-                        onNavigateToProfile()
                     },
                     icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
                     label = { Text("Perfil") }
@@ -220,6 +228,14 @@ fun HomeScreen(
                         TablesBoardScreen(
                             viewModel = tablesViewModel,
                             onNavigateBack = { selectedTab = 0 }
+                        )
+                    }
+                    3 -> {
+                        // Vista de perfil de usuario
+                        com.somphie.staff.feature.profile.ui.ProfileScreen(
+                            profile = profile,
+                            onSignOut = onNavigateToProfile,
+                            showTopBar = false
                         )
                     }
                 }

@@ -562,7 +562,7 @@ private fun noticeLabel(code: String): Int = when (code) {
 
 private const val MAX_CANCEL_REASON_LENGTH = 140
 
-// Preview para Android Studio (Split / Design tab)
+// Preview de la vista de Cocina para Android Studio (Split / Design tab)
 @Preview(showBackground = true)
 @Composable
 fun StationPreparationScreenPreview() {
@@ -601,6 +601,56 @@ fun StationPreparationScreenPreview() {
                         productName = "Sándwich de pollo",
                         quantity = 1,
                         status = "IN_PREPARATION"
+                    )
+                )
+            ),
+            profileName = "Lucas",
+            hasPermission = true,
+            context = LocalContext.current,
+            onSignOut = {},
+            onSelectStation = {},
+            onSelectFilter = {},
+            onRefreshQueue = {},
+            onRetryStations = {},
+            onPerformAction = { _, _ -> },
+            onRetryAction = {},
+            onLoadMore = {}
+        )
+    }
+}
+
+// Preview de la vista de Barra para Android Studio (Split / Design tab)
+@Preview(showBackground = true)
+@Composable
+fun BarStationPreparationScreenPreview() {
+    SomphieTheme {
+        StationPreparationContent(
+            state = StationQueueUiState(
+                isLoadingStations = false,
+                isLoadingQueue = false,
+                selectedStation = com.somphie.staff.core.network.Station("2", "BAR", "Barra"),
+                stations = listOf(com.somphie.staff.core.network.Station("2", "BAR", "Barra")),
+                filter = QueueFilter.ACTIVE,
+                items = listOf(
+                    StationQueueItem(
+                        itemId = "b1",
+                        orderId = "ob1",
+                        orderCode = "#010",
+                        tableLabel = "Mesa 2",
+                        productName = "Cappuccino",
+                        quantity = 2,
+                        status = "IN_PREPARATION",
+                        optionsSummary = "1 x Latte"
+                    ),
+                    StationQueueItem(
+                        itemId = "b2",
+                        orderId = "ob2",
+                        orderCode = "#011",
+                        tableLabel = "Mesa 6",
+                        productName = "Café espresso",
+                        quantity = 1,
+                        status = "IN_PREPARATION",
+                        optionsSummary = "1 x Cappuccino"
                     )
                 )
             ),
