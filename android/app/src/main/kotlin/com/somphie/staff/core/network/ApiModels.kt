@@ -173,3 +173,42 @@ data class StaffTable(
     val balanceMinor: Long? = null,
     val waiterCallActive: Boolean = false
 )
+
+// --- Detalle de Sesión / Mesa ---
+@Serializable
+data class StaffSession(
+    val id: String,
+    val status: String,
+    val tableLabel: String,
+    val openedAt: String,
+    val closedAt: String? = null,
+    val readOnly: Boolean = false,
+    val tableId: String? = null,
+    val closeReason: String? = null
+)
+
+@Serializable
+data class Participant(
+    val id: String,
+    val displayName: String,
+    val role: String, // HOST, MEMBER
+    val revoked: Boolean? = false
+)
+
+@Serializable
+data class Bill(
+    val currency: String = "ARS",
+    val chargesMinor: Long = 0,
+    val adjustmentsMinor: Long = 0,
+    val paidMinor: Long = 0,
+    val balanceMinor: Long = 0,
+    val tipsMinor: Long = 0
+)
+
+@Serializable
+data class StaffSessionDetail(
+    val session: StaffSession,
+    val participants: List<Participant> = emptyList(),
+    val orders: List<StaffOrder> = emptyList(),
+    val bill: Bill
+)

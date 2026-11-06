@@ -98,4 +98,9 @@ interface StaffApi {
     // --- Endpoints de Mesas ---
     @GET("staff/tables")
     suspend fun getTables(): StaffTableBoard
+
+    @GET("staff/sessions/{sessionId}")
+    suspend fun getSessionDetail(
+        @Path("sessionId") sessionId: String
+    ): StaffSessionDetail
 }

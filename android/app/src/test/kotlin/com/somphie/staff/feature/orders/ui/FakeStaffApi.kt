@@ -50,6 +50,13 @@ class FakeStaffApi : StaffApi {
         return StaffTableBoard(items = tablesList)
     }
 
+    var sessionDetail: com.somphie.staff.core.network.StaffSessionDetail? = null
+
+    override suspend fun getSessionDetail(sessionId: String): com.somphie.staff.core.network.StaffSessionDetail {
+        if (shouldFail) throw IOException("Error al obtener detalle de mesa")
+        return sessionDetail ?: throw IllegalStateException("Session not found")
+    }
+
     override suspend fun login(request: LoginRequest) = error("Unused")
     override fun refresh(request: RefreshRequest) = error("Unused")
     override suspend fun logout(request: RefreshRequest) = error("Unused")

@@ -11,4 +11,7 @@ class TablesRepository @Inject constructor(
 ) {
     suspend fun getTables(): Result<List<StaffTable>> =
         runCatching { api.getTables().items }
+
+    suspend fun getSessionDetail(sessionId: String): Result<com.somphie.staff.core.network.StaffSessionDetail> =
+        runCatching { api.getSessionDetail(sessionId) }
 }
