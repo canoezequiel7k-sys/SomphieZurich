@@ -262,7 +262,7 @@ fun OrderStatusBadge(status: String) {
 }
 
 // Vista previa para Android Studio (Split / Design tab)
-//@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 fun InboxScreenPreview() {
     SomphieTheme {

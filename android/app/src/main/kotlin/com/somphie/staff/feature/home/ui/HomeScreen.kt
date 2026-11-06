@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReceiptLong
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SoupKitchen
 import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.AssistChip
@@ -58,6 +57,7 @@ import com.somphie.staff.feature.orders.ui.InboxScreen
 import com.somphie.staff.feature.orders.ui.InboxViewModel
 import com.somphie.staff.feature.orders.ui.OrderDetailScreen
 import com.somphie.staff.feature.orders.ui.OrderDetailViewModel
+import com.somphie.staff.feature.profile.ui.ProfileScreen
 import com.somphie.staff.feature.tables.ui.TablesBoardScreen
 import com.somphie.staff.feature.tables.ui.TablesViewModel
 
@@ -78,6 +78,14 @@ fun HomeScreen(
     // Sub-estado para ver el detalle de un pedido
     var selectedOrderId by rememberSaveable { mutableStateOf<String?>(null) }
 
+    // Estado dinamico de la estacion activa (ej: Cocina o Barra)
+    var activeStationName by rememberSaveable {
+        mutableStateOf(profile.stations.firstOrNull()?.name ?: "Cocina")
+    }
+
+    // Sub-estado para ver la cola de preparacion de una estacion (ej: Cocina o Barra)
+    var selectedStationCode by rememberSaveable { mutableStateOf<String?>(null) }
+
     Scaffold(
         // TopAppBar dinamico que cambia el titulo e icono segun la pantalla visible
         topBar = {
@@ -85,6 +93,8 @@ fun HomeScreen(
                 // Titulo dinamico segun la seccion activa
                 title = {
                     val titleText = when {
+                        selectedStationCode == "KITCHEN" -> stringResource(R.string.kitchen_title)
+                        selectedStationCode == "BAR" -> stringResource(R.string.bar_title)
                         selectedOrderId != null -> stringResource(R.string.order_detail_title)
                         selectedTab == 1 -> stringResource(R.string.orders_title)
                         selectedTab == 2 -> stringResource(R.string.tables_title)
@@ -98,11 +108,13 @@ fun HomeScreen(
                         fontSize = 18.sp
                     )
                 },
-                // Icono de navegacion: ArrowBack para volver, Settings en Perfil, Menu hamburguesa en Inicio
+                // Icono de navegacion: ArrowBack en Perfil, Pedidos, Mesas, Estacion y Detalle; Menu en Inicio
                 navigationIcon = {
-                    if (selectedOrderId != null || (selectedTab != 0 && selectedTab != 3)) {
+                    if (selectedStationCode != null || selectedOrderId != null || selectedTab != 0) {
                         IconButton(onClick = {
-                            if (selectedOrderId != null) {
+                            if (selectedStationCode != null) {
+                                selectedStationCode = null // Vuelve al inicio
+                            } else if (selectedOrderId != null) {
                                 selectedOrderId = null // Vuelve a la lista de pedidos
                             } else {
                                 selectedTab = 0 // Vuelve al panel de Inicio
@@ -110,17 +122,11 @@ fun HomeScreen(
                         }) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Volver"
-                            )
-                        }
-                    } else if (selectedTab == 3) {
-                        IconButton(onClick = {}) {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = "Configuración"
+                                contentDescription = "Volver al inicio"
                             )
                         }
                     } else {
+                        // Icono de menu lateral en Inicio
                         IconButton(onClick = {}) {
                             Icon(
                                 imageVector = Icons.Default.Menu,
@@ -142,10 +148,11 @@ fun HomeScreen(
             ) {
                 // Pestaña 0: Inicio
                 NavigationBarItem(
-                    selected = selectedTab == 0 && selectedOrderId == null,
+                    selected = selectedTab == 0 && selectedOrderId == null && selectedStationCode == null,
                     onClick = {
                         selectedTab = 0
                         selectedOrderId = null
+                        selectedStationCode = null
                     },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
                     label = { Text("Inicio") }
@@ -153,10 +160,11 @@ fun HomeScreen(
 
                 // Pestaña 1: Pedidos
                 NavigationBarItem(
-                    selected = (selectedTab == 1 || selectedOrderId != null),
+                    selected = (selectedTab == 1 || selectedOrderId != null) && selectedStationCode == null,
                     onClick = {
                         selectedTab = 1
                         selectedOrderId = null
+                        selectedStationCode = null
                     },
                     icon = { Icon(Icons.Default.ReceiptLong, contentDescription = "Pedidos") },
                     label = { Text("Pedidos") }
@@ -164,10 +172,11 @@ fun HomeScreen(
 
                 // Pestaña 2: Mesas
                 NavigationBarItem(
-                    selected = selectedTab == 2 && selectedOrderId == null,
+                    selected = selectedTab == 2 && selectedOrderId == null && selectedStationCode == null,
                     onClick = {
                         selectedTab = 2
                         selectedOrderId = null
+                        selectedStationCode = null
                     },
                     icon = { Icon(Icons.Default.TableBar, contentDescription = "Mesas") },
                     label = { Text("Mesas") }
@@ -175,10 +184,11 @@ fun HomeScreen(
 
                 // Pestaña 3: Perfil
                 NavigationBarItem(
-                    selected = selectedTab == 3 && selectedOrderId == null,
+                    selected = selectedTab == 3 && selectedOrderId == null && selectedStationCode == null,
                     onClick = {
                         selectedTab = 3
                         selectedOrderId = null
+                        selectedStationCode = null
                     },
                     icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
                     label = { Text("Perfil") }
@@ -192,7 +202,13 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (selectedOrderId != null) {
+            if (selectedStationCode != null) {
+                // Vista de preparacion por estacion (Cocina / Barra)
+                com.somphie.staff.feature.stations.ui.StationPreparationScreen(
+                    profile = profile,
+                    onSignOut = { selectedStationCode = null }
+                )
+            } else if (selectedOrderId != null) {
                 // Vista de detalle del pedido seleccionado
                 val orderDetailViewModel: OrderDetailViewModel = hiltViewModel()
                 OrderDetailScreen(
@@ -205,12 +221,21 @@ fun HomeScreen(
                 when (selectedTab) {
                     0 -> DashboardContent(
                         profile = profile,
+                        activeStationName = activeStationName,
                         pendingOrdersCount = pendingOrdersCount,
                         activeTablesCount = activeTablesCount,
                         onNavigateToOrders = { selectedTab = 1 },
                         onNavigateToTables = { selectedTab = 2 },
-                        onNavigateToKitchen = onNavigateToKitchen,
-                        onNavigateToBar = onNavigateToBar
+                        onNavigateToKitchen = {
+                            activeStationName = "Cocina"
+                            selectedStationCode = "KITCHEN"
+                            onNavigateToKitchen()
+                        },
+                        onNavigateToBar = {
+                            activeStationName = "Barra"
+                            selectedStationCode = "BAR"
+                            onNavigateToBar()
+                        }
                     )
                     1 -> {
                         // Vista de la lista de pedidos
@@ -232,8 +257,12 @@ fun HomeScreen(
                     }
                     3 -> {
                         // Vista de perfil de usuario
-                        com.somphie.staff.feature.profile.ui.ProfileScreen(
+                        ProfileScreen(
                             profile = profile,
+                            activeStationName = activeStationName,
+                            onChangeStation = {
+                                activeStationName = if (activeStationName == "Cocina") "Barra" else "Cocina"
+                            },
                             onSignOut = onNavigateToProfile,
                             showTopBar = false
                         )
@@ -248,6 +277,7 @@ fun HomeScreen(
 @Composable
 private fun DashboardContent(
     profile: StaffProfile,
+    activeStationName: String,
     pendingOrdersCount: Int,
     activeTablesCount: Int,
     onNavigateToOrders: () -> Unit,
@@ -263,7 +293,7 @@ private fun DashboardContent(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Fila de encabezado: Saludo a la izquierda + Chip de estacion a la derecha
+        // Fila de encabezado: Saludo a la izquierda + Chip de estacion activa a la derecha
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -286,13 +316,13 @@ private fun DashboardContent(
                 )
             }
 
-            // Chip de estacion activa (ej. Cocina)
+            // Chip de estacion activa (ej. Cocina o Barra en tono marroncito)
             AssistChip(
                 onClick = {},
-                label = { Text("Cocina", fontSize = 12.sp) },
+                label = { Text(activeStationName, fontSize = 12.sp, fontWeight = FontWeight.Bold) },
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = StaffColors.Sage,
-                    labelColor = StaffColors.Cream
+                    containerColor = StaffColors.Caramel,
+                    labelColor = Color.White
                 )
             )
         }
@@ -429,7 +459,7 @@ private fun HomeDashboardCard(
 }
 
 // Preview del contenido principal para Android Studio
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun DashboardContentPreview() {
     com.somphie.staff.core.design.SomphieTheme {
@@ -443,6 +473,7 @@ fun DashboardContentPreview() {
                 stations = emptyList(),
                 mustChangePassword = false
             ),
+            activeStationName = "Cocina",
             pendingOrdersCount = 5,
             activeTablesCount = 3,
             onNavigateToOrders = {},

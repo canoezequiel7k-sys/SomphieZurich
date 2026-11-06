@@ -32,6 +32,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -56,6 +60,8 @@ fun ProfileScreen(
     onSignOut: () -> Unit = {},
     showTopBar: Boolean = false
 ) {
+    var selectedStationName by remember(activeStationName) { mutableStateOf(activeStationName) }
+
     Scaffold(
         // Barra superior opcional (solo si showTopBar es true)
         topBar = {
@@ -146,8 +152,11 @@ fun ProfileScreen(
                     ProfileOptionRow(
                         icon = Icons.Default.Sync,
                         title = stringResource(R.string.change_station_label),
-                        valueText = "$activeStationName >",
-                        onClick = onChangeStation
+                        valueText = "$selectedStationName >",
+                        onClick = {
+                            selectedStationName = if (selectedStationName == "Cocina") "Barra" else "Cocina"
+                            onChangeStation()
+                        }
                     )
 
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -266,7 +275,7 @@ fun ProfileScreenPreview() {
             profile = StaffProfile(
                 id = "demo-1",
                 email = "lucas@somphie.example",
-                displayName = "Lucas Gómez",
+                displayName = "Ezequiel Cano",
                 roles = listOf("KITCHEN"),
                 permissions = emptyList(),
                 stations = emptyList(),
