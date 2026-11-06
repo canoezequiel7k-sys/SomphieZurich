@@ -107,4 +107,9 @@
     <string name="reject_reason_invalid_item">Producto no disponible</string>
     <string name="reject_reason_other">Otro motivo</string>
 
+    <!-- Estación / Cocina -->
+    <string name="kitchen_title">Cocina</string>
+    <string name="bar_title">Barra</string>
+    <string name="estimated_time_min">%1$d min</string>
+
 </resources>
