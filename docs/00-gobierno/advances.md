@@ -1160,6 +1160,13 @@ El dueño delegó: *"toma las mejores decisiones posibles para que sea escalable
 - **Validación:** `gradle_build` ejecutó la compilación Kotlin y la suite de 27 pruebas unitarias: `BUILD SUCCESSFUL`.
 - **Archivos tocados:** `StaffSseManager.kt`, `ServerEvent.kt`, `advances.md`, `ROADMAP_ANDROID_DEV.md`.
 
+### 2026-10-21 — Cierre Oficial del Desarrollo Android de Personal (`SomphieStaff`) ✅
+- **Qué:** Se completó el 100% de los paquetes de trabajo de Android (`WP-AND-20` a `WP-AND-60` y `WP-AND-70/71`) cubriendo los 8 diseños del plano visual (`SC-S-01` a `SC-S-13`): Login, Inicio, Pedidos Entrantes, Detalle de Pedido, Tablero de Mesas, Detalle de Mesa, Colas de Cocina y Barra, Caja y Cobros, Descuentos con límite del 15% (Regla D-142), Creación de Pedido por el mozo y Cliente SSE en tiempo real.
+- **Por qué:** Entregar una aplicación nativa completa, desacoplada, con Clean Architecture, tokens centralizados (`StaffColors`), 27 pruebas unitarias en verde y previsualizaciones `@Preview`.
+- **Qué estudiar:** Arquitectura limpia en Jetpack Compose, flujo unidireccional `UiState`, testing con coroutines test dispatchers y sincronización con contratos backend.
+- **Validación:** `gradle_build` compiló exitosamente `:app:compileDebugKotlin` y `:app:testDebugUnitTest` con 27/27 pruebas pasando en VERDE.
+- **Archivos tocados:** Todo el módulo `:app` de Android, `advances.md`, `ROADMAP_ANDROID_DEV.md`.
+
 ---
 ## 7. Conceptos para estudiar (glosario rápido de este tramo)
 
