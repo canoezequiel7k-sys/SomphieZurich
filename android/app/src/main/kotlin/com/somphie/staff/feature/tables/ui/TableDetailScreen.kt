@@ -58,9 +58,10 @@ import com.somphie.staff.feature.orders.ui.formatMoney
 @Composable
 fun TableDetailScreen(
     sessionId: String,
-    tableLabel: String,
+    tableLabel: String = "Mesa",
     viewModel: TableDetailViewModel,
-    onNavigateBack: () -> Unit,
+    onNavigateBack: () -> Unit = {},
+    onViewFullDetails: () -> Unit = {},
     showTopBar: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -73,7 +74,7 @@ fun TableDetailScreen(
         state = state,
         tableLabel = tableLabel,
         onNavigateBack = onNavigateBack,
-        onViewFullDetails = { /* Abrir resumen completo de cuenta */ },
+        onViewFullDetails = onViewFullDetails,
         showTopBar = showTopBar
     )
 }

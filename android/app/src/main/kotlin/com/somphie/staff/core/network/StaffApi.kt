@@ -68,6 +68,30 @@ interface StaffApi {
         @Header("Idempotency-Key") idempotencyKey: String,
     ): ActionResult
 
+    // Registra un pago en caja (Efectivo / Tarjeta simulada)
+    @POST("staff/sessions/{sessionId}/payments")
+    suspend fun createPayment(
+        @Path("sessionId") sessionId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: StaffPaymentRequest
+    ): Response<StaffPaymentResponse>
+
+    // Reembolsa / Anula un pago registrado
+    @POST("staff/payments/{paymentId}/refund")
+    suspend fun refundPayment(
+        @Path("paymentId") paymentId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: StaffRefundRequest
+    ): Response<StaffPaymentResponse>
+
+    // Cierra manualmente o de forma forzada una sesión de mesa
+    @POST("staff/sessions/{sessionId}/close")
+    suspend fun closeSession(
+        @Path("sessionId") sessionId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: CloseSessionRequest
+    ): Response<StaffSession>
+
     // --- Endpoints de Pedidos ---
     @GET("staff/orders")
     suspend fun getOrders(

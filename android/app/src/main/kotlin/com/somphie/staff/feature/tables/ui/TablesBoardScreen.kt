@@ -53,6 +53,7 @@ import com.somphie.staff.core.network.StaffTable
 fun TablesBoardScreen(
     viewModel: TablesViewModel,
     onNavigateBack: () -> Unit,
+    onTableClick: (sessionId: String) -> Unit = {},
     showTopBar: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -61,6 +62,7 @@ fun TablesBoardScreen(
         state = state,
         onNavigateBack = onNavigateBack,
         onRefresh = { viewModel.loadTables() },
+        onTableClick = onTableClick,
         showTopBar = showTopBar
     )
 }
@@ -72,6 +74,7 @@ fun TablesBoardContent(
     state: TablesUiState,
     onNavigateBack: () -> Unit,
     onRefresh: () -> Unit,
+    onTableClick: (sessionId: String) -> Unit = {},
     showTopBar: Boolean = true
 ) {
     Scaffold(
@@ -123,7 +126,7 @@ fun TablesBoardContent(
                         modifier = Modifier.weight(1f)
                     ) {
                         items(state.tables, key = { it.tableId }) { table ->
-                            TableCard(table = table)
+                            TableCard(table = table, onClick = { table.sessionId?.let(onTableClick) })
                         }
                     }
                 }
@@ -147,7 +150,7 @@ fun TablesBoardContent(
 
 // Tarjeta individual de mesa
 @Composable
-private fun TableCard(table: StaffTable) {
+private fun TableCard(table: StaffTable, onClick: () -> Unit = {}) {
     // Mapeo de colores y textos segun el estado contractual de la mesa
     val (bgColor, textColor, statusText) = when (table.displayStatus) {
         "FREE" -> Triple(Color.White, StaffColors.Coffee, stringResource(R.string.status_free))
@@ -160,6 +163,7 @@ private fun TableCard(table: StaffTable) {
     }
 
     Card(
+        onClick = onClick,
         modifier = Modifier
             .aspectRatio(0.85f)
             .fillMaxWidth(),

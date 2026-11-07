@@ -150,34 +150,34 @@ La pantalla **Inicio** puede funcionar como contenedor de secciones. Mostrá sol
 
 | Ref. | Pantalla/flujo | Estado | Prioridad |
 |---|---|---|---|
-| SC-S-01 | Splash / Login (Pantalla 1 y 2) | ✅ Implementada y personalizada con animaciones de flujo | Base |
-| Cambio de contraseña | Implementada cuando el backend lo exige | Base |
-| SC-S-02 | Inicio/contenedor según permisos (Pantalla 3) | 🔄 En curso | Alta |
-| SC-S-03 | Pedidos entrantes | No implementada | Muy alta |
-| SC-S-04 | Detalle entrante: aceptar/rechazar/exclusiones permitidas | No implementada | Muy alta |
-| SC-S-05 | Cola por estación | Implementada | Alta: pulido e integración |
-| SC-S-06 | Acciones por producto | Implementadas según estado y permiso | Alta: pruebas integrales |
-| SC-S-07 | Tablero de mesas | No implementado | Después de confirmar alcance API |
-| SC-S-08 | Detalle de mesa/sesión | No implementado como pantalla | Después de confirmar permisos/estados |
-| SC-S-09 | Pago/reembolso en caja | No implementado | Fase posterior |
-| SC-S-10 | Cierre de sesión | No implementado como UI | Fase posterior |
-| SC-S-11 | Disponibilidad de productos/opciones | No implementada como UI | Bloqueada parcialmente por Q-27 |
-| SC-S-12 | Crear pedido en nombre del cliente | No implementada como UI | Fase posterior |
-| SC-S-13 | Perfil/ajustes | No implementada como pantalla propia | Después del flujo operativo base |
-| SC-S-14 | Estados globales de red/sesión/error | Parciales por pantalla; unificar al crecer la navegación | Continua |
+| SC-S-01 | Splash / Login (Pantalla 1) | ✅ Implementada | Base |
+| Cambio de contraseña | Obligatorio cuando el backend lo exige | ✅ Implementado | Base |
+| SC-S-02 | Inicio/contenedor según permisos (`HomeScreen.kt`) | ✅ Implementada con TopAppBar dinámico | Alta |
+| SC-S-03 | Pedidos entrantes (`InboxScreen.kt` / `InboxViewModel.kt`) | ✅ Implementada con filtros y badges | Muy alta |
+| SC-S-04 | Detalle entrante: aceptar/rechazar (`OrderDetailScreen.kt`) | ✅ Implementada con diálogo y mot. rechazo | Muy alta |
+| SC-S-05 | Cola por estación (`StationPreparationScreen.kt`) | ✅ Implementada para Cocina y Barra | Alta |
+| SC-S-06 | Acciones por producto | ✅ Implementada (start, ready, deliver, cancel) | Alta |
+| SC-S-07 | Tablero de mesas (`TablesBoardScreen.kt` / `TablesViewModel.kt`) | ✅ Implementada en cuadrícula 3xN y leyenda | Alta |
+| SC-S-08 | Detalle de mesa/sesión (`TableDetailScreen.kt`) | ✅ Implementada con consumo y estado | Alta |
+| SC-S-09 | Pago/reembolso en caja (`WP-AND-70`) | ⬜ No implementado | Próximo bloque |
+| SC-S-10 | Cierre de sesión de mesa (`WP-AND-70`) | ⬜ No implementado | Próximo bloque |
+| SC-S-11 | Disponibilidad de productos/opciones (`WP-AND-53`) | ⬜ No implementado | Bloqueado parcialmente por Q-27 |
+| SC-S-12 | Crear pedido en nombre del cliente | ⬜ No implementado | Fase posterior |
+| SC-S-13 | Perfil/ajustes (`ProfileScreen.kt`) | ✅ Implementada con selector de estación | Media |
+| SC-S-14 | Estados globales de red/sesión/error | ✅ Implementados por pantalla | Continua |
 
 ### Correspondencia con la lámina actual
 
-| Teléfono | Contenido que se ve | Referencia funcional |
-|---|---|---|
-| 1 | Login del personal | SC-S-01; sin registro público |
-| 2 | Inicio con turno, contadores y resumen | SC-S-02; solo datos que autorice el backend |
-| 3 | Lista de pedidos nuevos por mesa | SC-S-03 |
-| 4 | Productos, nota y decisión del pedido | SC-S-04 |
-| 5 | Cuadrícula con estado de mesas | SC-S-07 |
-| 6 | Cola de Cocina | SC-S-05/06, estación permitida |
-| 7 | Cola de Barra | SC-S-05/06, estación permitida |
-| 8 | Datos de perfil y opciones básicas | SC-S-13; cerrar sesión sigue la sesión autenticada |
+| Teléfono | Contenido que se ve | Referencia funcional | Estado |
+|---|---|---|---|
+| 1 | Login del personal | SC-S-01; sin registro público | ✅ Implementado |
+| 2 | Inicio con turno, contadores y resumen | SC-S-02; `HomeScreen.kt` | ✅ Implementado |
+| 3 | Lista de pedidos nuevos por mesa | SC-S-03; `InboxScreen.kt` | ✅ Implementado |
+| 4 | Productos, nota y decisión del pedido | SC-S-04; `OrderDetailScreen.kt` | ✅ Implementado |
+| 5 | Cuadrícula con estado de mesas | SC-S-07; `TablesBoardScreen.kt` | ✅ Implementado |
+| 6 | Cola de Cocina | SC-S-05/06; `StationPreparationScreen.kt` | ✅ Implementado |
+| 7 | Cola de Barra | SC-S-05/06; `StationPreparationScreen.kt` | ✅ Implementado |
+| 8 | Datos de perfil y opciones básicas | SC-S-13; `ProfileScreen.kt` | ✅ Implementado |
 
 La maqueta orienta la composición visual, no agrega rutas ni autoriza datos. En particular, los contadores, ventas, minutos estimados y saldos solo se muestran cuando exista un endpoint aprobado que los entregue para ese perfil. No inventes un endpoint para llenar el panel.
 

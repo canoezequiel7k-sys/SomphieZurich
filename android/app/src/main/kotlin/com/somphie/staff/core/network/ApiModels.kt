@@ -212,3 +212,33 @@ data class StaffSessionDetail(
     val orders: List<StaffOrder> = emptyList(),
     val bill: Bill
 )
+
+// --- Pagos y Caja Staff ---
+@Serializable
+data class StaffPaymentRequest(
+    val method: String = "CASH", // CASH, SIMULATED_CARD
+    val amountMinor: Long,
+    val tipMinor: Long = 0L
+)
+
+@Serializable
+data class StaffPaymentResponse(
+    val id: String,
+    val method: String,
+    val amountMinor: Long,
+    val tipMinor: Long = 0L,
+    val status: String, // COMPLETED, REFUNDED, DECLINED
+    val createdAt: String
+)
+
+@Serializable
+data class StaffRefundRequest(
+    val reasonCode: String,
+    val note: String? = null
+)
+
+@Serializable
+data class CloseSessionRequest(
+    val force: Boolean = false,
+    val reasonCode: String? = null
+)

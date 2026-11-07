@@ -1125,6 +1125,13 @@ El dueño delegó: *"toma las mejores decisiones posibles para que sea escalable
 - **Validación:** `npx --yes markdownlint-cli2@0.23.3 "android/docs/ROADMAP_ANDROID_DEV.md" "docs/05-diseno/mapa-pantallas.md" "docs/05-diseno/wireframes.md"` pasó sin incidencias; `git diff --check` terminó con código 0. No se modificó código de aplicación.
 - **Archivos tocados:** `android/docs/ROADMAP_ANDROID_DEV.md`, `docs/05-diseno/mapa-pantallas.md`, `docs/05-diseno/wireframes.md`, `docs/00-gobierno/advances.md`.
 
+### 2026-10-21 — Implementación de pantallas principales y flujo operativo Android (`WP-AND-51`, `WP-AND-53`, `SC-S-13`) ✅
+- **Qué:** Se implementaron las 8 pantallas de la app del personal en Jetpack Compose: Login (`SC-S-01`), Inicio / Panel (`HomeScreen.kt`), Pedidos Entrantes (`InboxScreen.kt` / `InboxViewModel.kt`), Detalle del Pedido (`OrderDetailScreen.kt` / `OrderDetailViewModel.kt`), Tablero de Mesas (`TablesBoardScreen.kt` / `TablesViewModel.kt`), Detalle de Mesa (`TableDetailScreen.kt` / `TableDetailViewModel.kt`), Preparación Cocina / Barra (`StationPreparationScreen.kt`) y Perfil (`ProfileScreen.kt` / `ProfileViewModel.kt`). Se agregaron repositorios (`OrdersRepository`, `TablesRepository`), DTOs de cuenta/sesión (`StaffSessionDetail`, `Bill`), navegación dinámica con selector de estación activa, tokens de color centralizados (`StaffColors`) y 14 pruebas unitarias pasadas en verde.
+- **Por qué:** Para completar la aplicación nativa Android desacoplada, testeable y alineada con los 8 diseños del plano visual, con soporte completo para previsualizaciones `@Preview` en Android Studio y lista para consumir los endpoints REST del backend.
+- **Qué estudiar:** Flujo unidireccional `UiState` en Compose, desacoplamiento para `@Preview` mediante inyección de dependencias y fakes, centralización de colores del sistema de diseño (`StaffColors`) e idempotencia en llamadas de mutación.
+- **Validación:** `gradle_build` ejecutó la compilación de Kotlin y la suite de pruebas unitarias (`InboxViewModelTest`, `OrderDetailViewModelTest`, `TablesViewModelTest`, `TableDetailViewModelTest`, `StationQueueViewModelTest`): `BUILD SUCCESSFUL`, 14/14 pruebas pasando en VERDE. Se capturaron las 8 pantallas en vivo desde un dispositivo ADB y se guardaron en `/android/screenshots/`.
+- **Archivos tocados:** `android/docs/ROADMAP_ANDROID_DEV.md`, `docs/00-gobierno/advances.md`, componentes de UI, repositorios y DTOs en `com.somphie.staff.*`.
+
 ---
 ## 7. Conceptos para estudiar (glosario rápido de este tramo)
 

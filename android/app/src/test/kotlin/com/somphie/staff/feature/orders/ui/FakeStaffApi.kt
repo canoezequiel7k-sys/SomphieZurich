@@ -69,4 +69,57 @@ class FakeStaffApi : StaffApi {
     override suspend fun deliver(itemId: String, idempotencyKey: String) = error("Unused")
     override suspend fun cancel(itemId: String, idempotencyKey: String, request: CancelItemRequest) = error("Unused")
     override suspend fun undo(itemId: String, idempotencyKey: String) = error("Unused")
+
+    override suspend fun createPayment(
+        sessionId: String,
+        idempotencyKey: String,
+        request: com.somphie.staff.core.network.StaffPaymentRequest
+    ): retrofit2.Response<com.somphie.staff.core.network.StaffPaymentResponse> {
+        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
+        return retrofit2.Response.success(
+            com.somphie.staff.core.network.StaffPaymentResponse(
+                id = "pay-1",
+                method = request.method,
+                amountMinor = request.amountMinor,
+                tipMinor = request.tipMinor,
+                status = "COMPLETED",
+                createdAt = "12:30"
+            )
+        )
+    }
+
+    override suspend fun refundPayment(
+        paymentId: String,
+        idempotencyKey: String,
+        request: com.somphie.staff.core.network.StaffRefundRequest
+    ): retrofit2.Response<com.somphie.staff.core.network.StaffPaymentResponse> {
+        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
+        return retrofit2.Response.success(
+            com.somphie.staff.core.network.StaffPaymentResponse(
+                id = paymentId,
+                method = "CASH",
+                amountMinor = 1090,
+                tipMinor = 0,
+                status = "REFUNDED",
+                createdAt = "12:35"
+            )
+        )
+    }
+
+    override suspend fun closeSession(
+        sessionId: String,
+        idempotencyKey: String,
+        request: com.somphie.staff.core.network.CloseSessionRequest
+    ): retrofit2.Response<com.somphie.staff.core.network.StaffSession> {
+        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
+        return retrofit2.Response.success(
+            com.somphie.staff.core.network.StaffSession(
+                id = sessionId,
+                status = "CLOSED",
+                tableLabel = "Mesa 4",
+                openedAt = "12:00",
+                closedAt = "12:40"
+            )
+        )
+    }
 }

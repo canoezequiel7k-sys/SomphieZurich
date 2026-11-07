@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SoupKitchen
 import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.AssistChip
@@ -53,11 +54,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.somphie.staff.R
 import com.somphie.staff.core.design.StaffColors
 import com.somphie.staff.core.network.StaffProfile
+import com.somphie.staff.feature.billing.ui.BillingScreen
+import com.somphie.staff.feature.billing.ui.BillingViewModel
 import com.somphie.staff.feature.orders.ui.InboxScreen
 import com.somphie.staff.feature.orders.ui.InboxViewModel
 import com.somphie.staff.feature.orders.ui.OrderDetailScreen
 import com.somphie.staff.feature.orders.ui.OrderDetailViewModel
 import com.somphie.staff.feature.profile.ui.ProfileScreen
+import com.somphie.staff.feature.tables.ui.TableDetailScreen
+import com.somphie.staff.feature.tables.ui.TableDetailViewModel
 import com.somphie.staff.feature.tables.ui.TablesBoardScreen
 import com.somphie.staff.feature.tables.ui.TablesViewModel
 
@@ -78,6 +83,12 @@ fun HomeScreen(
     // Sub-estado para ver el detalle de un pedido
     var selectedOrderId by rememberSaveable { mutableStateOf<String?>(null) }
 
+    // Sub-estado para ver el detalle de una mesa / sesión
+    var selectedTableSessionId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Sub-estado para ver la pantalla de Cobro en Caja
+    var selectedBillingSessionId by rememberSaveable { mutableStateOf<String?>(null) }
+
     // Estado dinamico de la estacion activa (ej: Cocina o Barra)
     var activeStationName by rememberSaveable {
         mutableStateOf(profile.stations.firstOrNull()?.name ?: "Cocina")
@@ -93,6 +104,8 @@ fun HomeScreen(
                 // Titulo dinamico segun la seccion activa
                 title = {
                     val titleText = when {
+                        selectedBillingSessionId != null -> "Cobro en Caja"
+                        selectedTableSessionId != null -> "Detalle de Mesa"
                         selectedStationCode == "KITCHEN" -> stringResource(R.string.kitchen_title)
                         selectedStationCode == "BAR" -> stringResource(R.string.bar_title)
                         selectedOrderId != null -> stringResource(R.string.order_detail_title)
@@ -108,25 +121,35 @@ fun HomeScreen(
                         fontSize = 18.sp
                     )
                 },
-                // Icono de navegacion: ArrowBack en Perfil, Pedidos, Mesas, Estacion y Detalle; Menu en Inicio
+                // Icono de navegacion: ArrowBack en Perfil, Pedidos, Mesas, Cobro y Detalle; Menu en Inicio
                 navigationIcon = {
-                    if (selectedStationCode != null || selectedOrderId != null || selectedTab != 0) {
+                    if (selectedBillingSessionId != null || selectedTableSessionId != null || selectedStationCode != null || selectedOrderId != null || selectedTab != 0) {
                         IconButton(onClick = {
-                            if (selectedStationCode != null) {
-                                selectedStationCode = null // Vuelve al inicio
+                            if (selectedBillingSessionId != null) {
+                                selectedBillingSessionId = null
+                            } else if (selectedTableSessionId != null) {
+                                selectedTableSessionId = null
+                            } else if (selectedStationCode != null) {
+                                selectedStationCode = null
                             } else if (selectedOrderId != null) {
-                                selectedOrderId = null // Vuelve a la lista de pedidos
+                                selectedOrderId = null
                             } else {
-                                selectedTab = 0 // Vuelve al panel de Inicio
+                                selectedTab = 0
                             }
                         }) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Volver al inicio"
+                                contentDescription = "Volver"
+                            )
+                        }
+                    } else if (selectedTab == 3) {
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Configuración"
                             )
                         }
                     } else {
-                        // Icono de menu lateral en Inicio
                         IconButton(onClick = {}) {
                             Icon(
                                 imageVector = Icons.Default.Menu,
@@ -148,11 +171,13 @@ fun HomeScreen(
             ) {
                 // Pestaña 0: Inicio
                 NavigationBarItem(
-                    selected = selectedTab == 0 && selectedOrderId == null && selectedStationCode == null,
+                    selected = selectedTab == 0 && selectedOrderId == null && selectedStationCode == null && selectedTableSessionId == null && selectedBillingSessionId == null,
                     onClick = {
                         selectedTab = 0
                         selectedOrderId = null
                         selectedStationCode = null
+                        selectedTableSessionId = null
+                        selectedBillingSessionId = null
                     },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
                     label = { Text("Inicio") }
@@ -160,11 +185,13 @@ fun HomeScreen(
 
                 // Pestaña 1: Pedidos
                 NavigationBarItem(
-                    selected = (selectedTab == 1 || selectedOrderId != null) && selectedStationCode == null,
+                    selected = (selectedTab == 1 || selectedOrderId != null) && selectedStationCode == null && selectedTableSessionId == null && selectedBillingSessionId == null,
                     onClick = {
                         selectedTab = 1
                         selectedOrderId = null
                         selectedStationCode = null
+                        selectedTableSessionId = null
+                        selectedBillingSessionId = null
                     },
                     icon = { Icon(Icons.Default.ReceiptLong, contentDescription = "Pedidos") },
                     label = { Text("Pedidos") }
@@ -172,11 +199,13 @@ fun HomeScreen(
 
                 // Pestaña 2: Mesas
                 NavigationBarItem(
-                    selected = selectedTab == 2 && selectedOrderId == null && selectedStationCode == null,
+                    selected = (selectedTab == 2 || selectedTableSessionId != null || selectedBillingSessionId != null) && selectedStationCode == null,
                     onClick = {
                         selectedTab = 2
                         selectedOrderId = null
                         selectedStationCode = null
+                        selectedTableSessionId = null
+                        selectedBillingSessionId = null
                     },
                     icon = { Icon(Icons.Default.TableBar, contentDescription = "Mesas") },
                     label = { Text("Mesas") }
@@ -184,11 +213,13 @@ fun HomeScreen(
 
                 // Pestaña 3: Perfil
                 NavigationBarItem(
-                    selected = selectedTab == 3 && selectedOrderId == null && selectedStationCode == null,
+                    selected = selectedTab == 3 && selectedOrderId == null && selectedStationCode == null && selectedTableSessionId == null && selectedBillingSessionId == null,
                     onClick = {
                         selectedTab = 3
                         selectedOrderId = null
                         selectedStationCode = null
+                        selectedTableSessionId = null
+                        selectedBillingSessionId = null
                     },
                     icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
                     label = { Text("Perfil") }
@@ -202,7 +233,31 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (selectedStationCode != null) {
+            if (selectedBillingSessionId != null) {
+                // Vista de Cobro en Caja
+                val billingViewModel: BillingViewModel = hiltViewModel()
+                BillingScreen(
+                    sessionId = selectedBillingSessionId!!,
+                    viewModel = billingViewModel,
+                    onNavigateBack = { selectedBillingSessionId = null },
+                    onSessionClosed = {
+                        selectedBillingSessionId = null
+                        selectedTableSessionId = null
+                        selectedTab = 2
+                    },
+                    showTopBar = false
+                )
+            } else if (selectedTableSessionId != null) {
+                // Vista de Detalle de Mesa
+                val tableDetailViewModel: TableDetailViewModel = hiltViewModel()
+                TableDetailScreen(
+                    sessionId = selectedTableSessionId!!,
+                    viewModel = tableDetailViewModel,
+                    onNavigateBack = { selectedTableSessionId = null },
+                    onViewFullDetails = { selectedBillingSessionId = selectedTableSessionId },
+                    showTopBar = false
+                )
+            } else if (selectedStationCode != null) {
                 // Vista de preparacion por estacion (Cocina / Barra)
                 com.somphie.staff.feature.stations.ui.StationPreparationScreen(
                     profile = profile,
@@ -252,7 +307,8 @@ fun HomeScreen(
                         val tablesViewModel: TablesViewModel = hiltViewModel()
                         TablesBoardScreen(
                             viewModel = tablesViewModel,
-                            onNavigateBack = { selectedTab = 0 }
+                            onNavigateBack = { selectedTab = 0 },
+                            onTableClick = { sessionId -> selectedTableSessionId = sessionId }
                         )
                     }
                     3 -> {
