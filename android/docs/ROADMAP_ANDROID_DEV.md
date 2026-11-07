@@ -165,6 +165,7 @@ La pantalla **Inicio** puede funcionar como contenedor de secciones. Mostrá sol
 | SC-S-11 | Disponibilidad de productos/opciones (`AvailabilityScreen.kt` / `WP-AND-53`) | ✅ Implementado con switch en vivo | Alta |
 | SC-S-12 | Crear pedido en nombre del cliente (`CreateOrderScreen.kt`) | ✅ Implementado con carta y notas | Alta |
 | SC-S-13 | Perfil/ajustes (`ProfileScreen.kt`) | ✅ Implementada con selector de estación | Media |
+| WP-AND-60 | Tiempo Real Server-Sent Events (`StaffSseManager.kt`) | ✅ Implementado cliente SSE y reconexión | Alta |
 | SC-S-14 | Estados globales de red/sesión/error | ✅ Implementados por pantalla | Continua |
 
 ### Correspondencia con la lámina actual

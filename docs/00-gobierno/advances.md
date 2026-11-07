@@ -1153,6 +1153,13 @@ El dueño delegó: *"toma las mejores decisiones posibles para que sea escalable
 - **Validación:** `gradle_build` ejecutó la compilación Kotlin y la suite de 27 pruebas unitarias (`AvailabilityViewModelTest` incluido): `BUILD SUCCESSFUL`, 27/27 pruebas pasando en VERDE.
 - **Archivos tocados:** `AvailabilityScreen.kt`, `AvailabilityViewModel.kt`, `AvailabilityRepository.kt`, `ApiModels.kt`, `StaffApi.kt`, `ProfileScreen.kt`, `HomeScreen.kt`, `FakeStaffApi.kt`, `AvailabilityViewModelTest.kt`, `advances.md`, `ROADMAP_ANDROID_DEV.md`.
 
+### 2026-10-21 — Integración de Tiempo Real Server-Sent Events SSE (`WP-AND-60`) ✅
+- **Qué:** Se implementó el cliente SSE en Android (`StaffSseManager.kt`, `ServerEvent.kt`) conectándose al endpoint `GET /events/stream` del backend con autenticación Bearer y reintento automático ante desconexiones. El administrador expone un `SharedFlow<ServerEvent>` que permite a las pantallas del personal sincronizar eventos de pedidos, ítems y mesas en tiempo real.
+- **Por qué:** Elimina la dependencia exclusiva de polling periódico y permite actualizaciones instantáneas cuando el servidor emite eventos durables.
+- **Qué estudiar:** Conexiones HTTP de larga duración (`text/event-stream`), parsing de líneas `event:` y `data:` mediante `BufferedSource`, y reconexión resiliente con backoff.
+- **Validación:** `gradle_build` ejecutó la compilación Kotlin y la suite de 27 pruebas unitarias: `BUILD SUCCESSFUL`.
+- **Archivos tocados:** `StaffSseManager.kt`, `ServerEvent.kt`, `advances.md`, `ROADMAP_ANDROID_DEV.md`.
+
 ---
 ## 7. Conceptos para estudiar (glosario rápido de este tramo)
 
