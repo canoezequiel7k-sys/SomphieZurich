@@ -92,6 +92,22 @@ interface StaffApi {
         @Body request: CloseSessionRequest
     ): Response<StaffSession>
 
+    // Aplica un ajuste o descuento a la sesión de mesa
+    @POST("staff/sessions/{sessionId}/adjustments")
+    suspend fun createAdjustment(
+        @Path("sessionId") sessionId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: StaffAdjustmentRequest
+    ): Response<StaffAdjustmentResponse>
+
+    // Anula un ajuste o descuento previamente aplicado
+    @POST("staff/adjustments/{adjustmentId}/void")
+    suspend fun voidAdjustment(
+        @Path("adjustmentId") adjustmentId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: StaffVoidAdjustmentRequest
+    ): Response<StaffAdjustmentResponse>
+
     // --- Endpoints de Pedidos ---
     @GET("staff/orders")
     suspend fun getOrders(

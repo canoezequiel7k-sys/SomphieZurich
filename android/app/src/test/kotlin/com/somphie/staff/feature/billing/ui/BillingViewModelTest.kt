@@ -85,4 +85,28 @@ class BillingViewModelTest {
         val formatted = formatMoney(1090L, "ARS")
         assertEquals("$10.90", formatted)
     }
+
+    @Test
+    fun `applyDiscountPercent success for owner`() = runTest {
+        val mockSession = StaffSessionDetail(
+            session = StaffSession(id = "sess-1", status = "OPEN", tableLabel = "Mesa 4", openedAt = "12:00"),
+            bill = Bill(currency = "ARS", chargesMinor = 1090, balanceMinor = 1090)
+        )
+        fakeApi.sessionDetail = mockSession
+
+        viewModel.applyDiscountPercent("sess-1", percent = 20, isWaiter = false)
+        testScheduler.advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("Descuento del 20% aplicado correctamente", state.paymentSuccessMessage)
+        assertNull(state.errorMessage)
+    }
+
+    @Test
+    fun `applyDiscountPercent exceeds 15 percent limit for waiter sets errorMessage`() = runTest {
+        viewModel.applyDiscountPercent("sess-1", percent = 20, isWaiter = true)
+
+        val state = viewModel.uiState.value
+        assertEquals("Los mozos solo pueden aplicar hasta un 15% de descuento (Regla D-142)", state.errorMessage)
+    }
 }

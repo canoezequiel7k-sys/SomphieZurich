@@ -2,7 +2,6 @@ package com.somphie.staff.feature.billing.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.somphie.staff.core.network.Bill
 import com.somphie.staff.core.network.StaffSessionDetail
 import com.somphie.staff.feature.billing.data.BillingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +21,7 @@ data class BillingUiState(
     val isProcessingPayment: Boolean = false,
     val showPayDialog: Boolean = false,
     val showRefundDialog: Boolean = false,
+    val showAdjustmentDialog: Boolean = false,
     val selectedPaymentId: String? = null
 )
 
@@ -76,7 +76,6 @@ class BillingViewModel @Inject constructor(
                         showPayDialog = false,
                         paymentSuccessMessage = "Pago registrado correctamente"
                     )
-                    // Recargar la cuenta para actualizar el saldo
                     loadBill(sessionId)
                 }
                 .onFailure { error ->
@@ -85,6 +84,81 @@ class BillingViewModel @Inject constructor(
                         errorMessage = error.message ?: "Error al procesar el pago"
                     )
                 }
+        }
+    }
+
+    // Aplicar descuento porcentual con verificación de límite del 15% para mozos (D-142)
+    fun applyDiscountPercent(
+        sessionId: String,
+        percent: Int,
+        reasonCode: String = "WAITER_COURTESY",
+        isWaiter: Boolean = false
+    ) {
+        // Regla D-142: El mozo solo puede aplicar hasta 15% acumulado
+        if (isWaiter && percent > 15) {
+            _uiState.value = _uiState.value.copy(
+                errorMessage = "Los mozos solo pueden aplicar hasta un 15% de descuento (Regla D-142)"
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isProcessingPayment = true, errorMessage = null)
+            val idempotencyKey = UUID.randomUUID().toString()
+            runCatching {
+                repository.createAdjustment(
+                    sessionId = sessionId,
+                    idempotencyKey = idempotencyKey,
+                    type = "DISCOUNT_PERCENT",
+                    percent = percent,
+                    reasonCode = reasonCode
+                )
+            }.onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    isProcessingPayment = false,
+                    showAdjustmentDialog = false,
+                    paymentSuccessMessage = "Descuento del $percent% aplicado correctamente"
+                )
+                loadBill(sessionId)
+            }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    isProcessingPayment = false,
+                    errorMessage = error.message ?: "Error al aplicar descuento"
+                )
+            }
+        }
+    }
+
+    // Aplicar descuento por monto fijo
+    fun applyDiscountAmount(
+        sessionId: String,
+        amountMinor: Long,
+        reasonCode: String = "WAITER_COURTESY"
+    ) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isProcessingPayment = true, errorMessage = null)
+            val idempotencyKey = UUID.randomUUID().toString()
+            runCatching {
+                repository.createAdjustment(
+                    sessionId = sessionId,
+                    idempotencyKey = idempotencyKey,
+                    type = "DISCOUNT_AMOUNT",
+                    valueMinor = amountMinor,
+                    reasonCode = reasonCode
+                )
+            }.onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    isProcessingPayment = false,
+                    showAdjustmentDialog = false,
+                    paymentSuccessMessage = "Descuento de ${formatMoney(amountMinor)} aplicado"
+                )
+                loadBill(sessionId)
+            }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    isProcessingPayment = false,
+                    errorMessage = error.message ?: "Error al aplicar descuento por monto"
+                )
+            }
         }
     }
 
@@ -154,6 +228,14 @@ class BillingViewModel @Inject constructor(
 
     fun closePayDialog() {
         _uiState.value = _uiState.value.copy(showPayDialog = false)
+    }
+
+    fun openAdjustmentDialog() {
+        _uiState.value = _uiState.value.copy(showAdjustmentDialog = true)
+    }
+
+    fun closeAdjustmentDialog() {
+        _uiState.value = _uiState.value.copy(showAdjustmentDialog = false)
     }
 
     fun openRefundDialog(paymentId: String) {

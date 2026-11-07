@@ -242,3 +242,30 @@ data class CloseSessionRequest(
     val force: Boolean = false,
     val reasonCode: String? = null
 )
+
+// --- Ajustes, Descuentos y Cortesías Staff ---
+@Serializable
+data class StaffAdjustmentRequest(
+    val type: String, // DISCOUNT_PERCENT, DISCOUNT_AMOUNT, MANUAL_ADJUSTMENT
+    val valueMinor: Long? = null,
+    val percent: Int? = null,
+    val reasonCode: String, // WAITER_COURTESY, PROMOTION, SERVICE_DISCONTENT
+    val note: String? = null
+)
+
+@Serializable
+data class StaffAdjustmentResponse(
+    val id: String,
+    val type: String,
+    val amountMinor: Long,
+    val percent: Int? = null,
+    val reasonCode: String,
+    val status: String, // APPLIED, VOIDED
+    val createdAt: String
+)
+
+@Serializable
+data class StaffVoidAdjustmentRequest(
+    val reasonCode: String,
+    val note: String? = null
+)

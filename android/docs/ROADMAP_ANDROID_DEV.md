@@ -159,8 +159,9 @@ La pantalla **Inicio** puede funcionar como contenedor de secciones. Mostrá sol
 | SC-S-06 | Acciones por producto | ✅ Implementada (start, ready, deliver, cancel) | Alta |
 | SC-S-07 | Tablero de mesas (`TablesBoardScreen.kt` / `TablesViewModel.kt`) | ✅ Implementada en cuadrícula 3xN y leyenda | Alta |
 | SC-S-08 | Detalle de mesa/sesión (`TableDetailScreen.kt`) | ✅ Implementada con consumo y estado | Alta |
-| SC-S-09 | Pago/reembolso en caja (`WP-AND-70`) | ⬜ No implementado | Próximo bloque |
-| SC-S-10 | Cierre de sesión de mesa (`WP-AND-70`) | ⬜ No implementado | Próximo bloque |
+| SC-S-09 | Pago/reembolso en caja (`BillingScreen.kt` / `WP-AND-70`) | ✅ Implementado con cobro e idempotencia | Alta |
+| Ajustes y Cortesías | Descuentos % o monto fijo con límite 15% mozos (`WP-AND-71`) | ✅ Implementado con regla D-142 | Alta |
+| SC-S-10 | Cierre de sesión de mesa (`WP-AND-70`) | ✅ Implementado (normal y forzado) | Alta |
 | SC-S-11 | Disponibilidad de productos/opciones (`WP-AND-53`) | ⬜ No implementado | Bloqueado parcialmente por Q-27 |
 | SC-S-12 | Crear pedido en nombre del cliente | ⬜ No implementado | Fase posterior |
 | SC-S-13 | Perfil/ajustes (`ProfileScreen.kt`) | ✅ Implementada con selector de estación | Media |

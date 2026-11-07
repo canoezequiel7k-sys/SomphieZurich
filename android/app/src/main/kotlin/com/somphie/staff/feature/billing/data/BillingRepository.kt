@@ -95,4 +95,54 @@ class BillingRepository @Inject constructor(
             }
         }
     }
+
+    // Aplicar un descuento o cortesía
+    suspend fun createAdjustment(
+        sessionId: String,
+        idempotencyKey: String,
+        type: String,
+        valueMinor: Long? = null,
+        percent: Int? = null,
+        reasonCode: String,
+        note: String? = null
+    ): com.somphie.staff.core.network.StaffAdjustmentResponse {
+        val response = api.createAdjustment(
+            sessionId = sessionId,
+            idempotencyKey = idempotencyKey,
+            request = com.somphie.staff.core.network.StaffAdjustmentRequest(
+                type = type,
+                valueMinor = valueMinor,
+                percent = percent,
+                reasonCode = reasonCode,
+                note = note
+            )
+        )
+        if (response.isSuccessful && response.body() != null) {
+            return response.body()!!
+        } else {
+            throw Exception("Error al aplicar descuento: ${response.code()}")
+        }
+    }
+
+    // Anular un descuento o cortesía
+    suspend fun voidAdjustment(
+        adjustmentId: String,
+        idempotencyKey: String,
+        reasonCode: String,
+        note: String? = null
+    ): com.somphie.staff.core.network.StaffAdjustmentResponse {
+        val response = api.voidAdjustment(
+            adjustmentId = adjustmentId,
+            idempotencyKey = idempotencyKey,
+            request = com.somphie.staff.core.network.StaffVoidAdjustmentRequest(
+                reasonCode = reasonCode,
+                note = note
+            )
+        )
+        if (response.isSuccessful && response.body() != null) {
+            return response.body()!!
+        } else {
+            throw Exception("Error al anular descuento: ${response.code()}")
+        }
+    }
 }

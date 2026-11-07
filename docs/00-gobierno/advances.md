@@ -1132,6 +1132,13 @@ El dueño delegó: *"toma las mejores decisiones posibles para que sea escalable
 - **Validación:** `gradle_build` ejecutó la compilación de Kotlin y la suite de pruebas unitarias (`InboxViewModelTest`, `OrderDetailViewModelTest`, `TablesViewModelTest`, `TableDetailViewModelTest`, `StationQueueViewModelTest`): `BUILD SUCCESSFUL`, 14/14 pruebas pasando en VERDE. Se capturaron las 8 pantallas en vivo desde un dispositivo ADB y se guardaron en `/android/screenshots/`.
 - **Archivos tocados:** `android/docs/ROADMAP_ANDROID_DEV.md`, `docs/00-gobierno/advances.md`, componentes de UI, repositorios y DTOs en `com.somphie.staff.*`.
 
+### 2026-10-21 — Caja, Pagos, Cortesías y Ajustes de Cuenta (`WP-AND-70`, `WP-AND-71`, `SC-S-09`) ✅
+- **Qué:** Se implementó la pantalla y flujo de Cobro en Caja (`BillingScreen.kt`, `BillingViewModel.kt`, `BillingRepository.kt`) integrando pagos en efectivo y tarjeta simulada (`POST /staff/sessions/{sessionId}/payments`), reembolsos (`POST /staff/payments/{id}/refund`), cierres normal/forzado de mesa (`POST /staff/sessions/{sessionId}/close`) y la aplicación de descuentos o cortesías porcentuales/monto fijo (`POST /staff/sessions/{sessionId}/adjustments`) con motivo obligatorio. Se incorporó la validación del límite del **15% máximo de descuento para mozos** (Regla D-142) y el cierre de mesa condicionado a saldo `$0.00`.
+- **Por qué:** Para completar la gestión financiera de caja en Android de forma idempotente, alineada con las decisiones de negocio D-142 / D-158 / D-159 y el contrato OpenAPI.
+- **Qué estudiar:** Límites de autorización por rol (`isWaiter` vs `isOwner`), manejo de idempotencia en mutaciones de caja y validación estricta de saldo cero.
+- **Validación:** `gradle_build` ejecutó la compilación Kotlin y la suite de 20 pruebas unitarias (`BillingViewModelTest` incluido): `BUILD SUCCESSFUL`, 20/20 pruebas pasando en VERDE.
+- **Archivos tocados:** `BillingScreen.kt`, `BillingViewModel.kt`, `BillingRepository.kt`, `ApiModels.kt`, `StaffApi.kt`, `HomeScreen.kt`, `TablesBoardScreen.kt`, `TableDetailScreen.kt`, `FakeStaffApi.kt`, `BillingViewModelTest.kt`, `advances.md`, `ROADMAP_ANDROID_DEV.md`.
+
 ---
 ## 7. Conceptos para estudiar (glosario rápido de este tramo)
 

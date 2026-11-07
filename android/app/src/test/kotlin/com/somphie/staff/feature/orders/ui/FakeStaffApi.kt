@@ -122,4 +122,42 @@ class FakeStaffApi : StaffApi {
             )
         )
     }
+
+    override suspend fun createAdjustment(
+        sessionId: String,
+        idempotencyKey: String,
+        request: com.somphie.staff.core.network.StaffAdjustmentRequest
+    ): retrofit2.Response<com.somphie.staff.core.network.StaffAdjustmentResponse> {
+        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
+        return retrofit2.Response.success(
+            com.somphie.staff.core.network.StaffAdjustmentResponse(
+                id = "adj-1",
+                type = request.type,
+                amountMinor = request.valueMinor ?: 100L,
+                percent = request.percent,
+                reasonCode = request.reasonCode,
+                status = "APPLIED",
+                createdAt = "12:35"
+            )
+        )
+    }
+
+    override suspend fun voidAdjustment(
+        adjustmentId: String,
+        idempotencyKey: String,
+        request: com.somphie.staff.core.network.StaffVoidAdjustmentRequest
+    ): retrofit2.Response<com.somphie.staff.core.network.StaffAdjustmentResponse> {
+        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
+        return retrofit2.Response.success(
+            com.somphie.staff.core.network.StaffAdjustmentResponse(
+                id = adjustmentId,
+                type = "DISCOUNT_PERCENT",
+                amountMinor = 100L,
+                percent = 10,
+                reasonCode = request.reasonCode,
+                status = "VOIDED",
+                createdAt = "12:40"
+            )
+        )
+    }
 }

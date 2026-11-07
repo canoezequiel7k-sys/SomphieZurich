@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -39,19 +40,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.somphie.staff.R
 import com.somphie.staff.core.design.SomphieTheme
 import com.somphie.staff.core.design.StaffColors
 import com.somphie.staff.core.network.Bill
@@ -82,8 +82,13 @@ fun BillingScreen(
         onNavigateBack = onNavigateBack,
         onOpenPayDialog = { viewModel.openPayDialog() },
         onClosePayDialog = { viewModel.closePayDialog() },
+        onOpenAdjustmentDialog = { viewModel.openAdjustmentDialog() },
+        onCloseAdjustmentDialog = { viewModel.closeAdjustmentDialog() },
         onConfirmPay = { amountMinor, tipMinor ->
             viewModel.processPayment(sessionId, amountMinor, tipMinor)
+        },
+        onConfirmDiscountPercent = { percent ->
+            viewModel.applyDiscountPercent(sessionId, percent, isWaiter = true)
         },
         onCloseSession = {
             viewModel.closeSession(sessionId = sessionId, onClosed = onSessionClosed)
@@ -100,7 +105,10 @@ fun BillingContent(
     onNavigateBack: () -> Unit = {},
     onOpenPayDialog: () -> Unit = {},
     onClosePayDialog: () -> Unit = {},
+    onOpenAdjustmentDialog: () -> Unit = {},
+    onCloseAdjustmentDialog: () -> Unit = {},
     onConfirmPay: (amountMinor: Long, tipMinor: Long) -> Unit = { _, _ -> },
+    onConfirmDiscountPercent: (percent: Int) -> Unit = {},
     onCloseSession: () -> Unit = {},
     showTopBar: Boolean = true
 ) {
@@ -153,6 +161,21 @@ fun BillingContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Spacer(modifier = Modifier.height(8.dp))
+
+                    // Mensaje de error si la regla de descuento del 15% fue superada
+                    if (uiState.errorMessage != null) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = uiState.errorMessage,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(12.dp),
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
 
                     // Encabezado con número de mesa
                     Text(
@@ -255,7 +278,7 @@ fun BillingContent(
                         }
                     }
 
-                    // Botones de acción (Cobrar y Cerrar Mesa)
+                    // Botones de acción (Cobrar, Aplicar Descuento y Cerrar Mesa)
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -283,7 +306,25 @@ fun BillingContent(
                             )
                         }
 
-                        // Botón 2: Cerrar Mesa
+                        // Botón 2: Aplicar Descuento / Cortesía
+                        OutlinedButton(
+                            onClick = onOpenAdjustmentDialog,
+                            enabled = bill.balanceMinor > 0 && !uiState.isProcessingPayment,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                        ) {
+                            Icon(Icons.Default.Percent, contentDescription = null, tint = StaffColors.Caramel)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Aplicar Descuento / Cortesía",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = StaffColors.Coffee
+                            )
+                        }
+
+                        // Botón 3: Cerrar Mesa
                         OutlinedButton(
                             onClick = onCloseSession,
                             enabled = bill.balanceMinor == 0L && !uiState.isProcessingPayment,
@@ -312,6 +353,14 @@ fun BillingContent(
                     onConfirm = onConfirmPay
                 )
             }
+
+            // Diálogo emergente para aplicar descuento / cortesía
+            if (uiState.showAdjustmentDialog && uiState.sessionDetail != null) {
+                AdjustmentDialog(
+                    onDismiss = onCloseAdjustmentDialog,
+                    onConfirmPercent = onConfirmDiscountPercent
+                )
+            }
         }
     }
 }
@@ -326,6 +375,62 @@ private fun BillSummaryRow(label: String, value: String) {
         Text(text = label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
         Text(text = value, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
     }
+}
+
+// Diálogo para aplicar Descuento / Cortesía
+@Composable
+private fun AdjustmentDialog(
+    onDismiss: () -> Unit,
+    onConfirmPercent: (percent: Int) -> Unit
+) {
+    var percentValue by remember { mutableIntStateOf(10) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text("Aplicar Descuento / Cortesía", fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "Selecciona el porcentaje de descuento (máx 15% para mozos según regla D-142):",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(5, 10, 15, 20).forEach { p ->
+                        OutlinedButton(
+                            onClick = { percentValue = p },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (percentValue == p) StaffColors.Caramel else Color.Transparent,
+                                contentColor = if (percentValue == p) Color.White else StaffColors.Coffee
+                            )
+                        ) {
+                            Text("$p%")
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirmPercent(percentValue) },
+                colors = ButtonDefaults.buttonColors(containerColor = StaffColors.Coffee)
+            ) {
+                Text("Aplicar $percentValue%", color = Color.White)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 // Diálogo de Pago en Efectivo / Tarjeta
@@ -435,9 +540,9 @@ fun BillingScreenPreview() {
                     bill = Bill(
                         currency = "ARS",
                         chargesMinor = 1090,
-                        adjustmentsMinor = 0,
+                        adjustmentsMinor = -109,
                         paidMinor = 0,
-                        balanceMinor = 1090,
+                        balanceMinor = 981,
                         tipsMinor = 0
                     )
                 )
