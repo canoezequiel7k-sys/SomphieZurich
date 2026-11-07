@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Card
@@ -56,6 +57,7 @@ fun ProfileScreen(
     profile: StaffProfile,
     activeStationName: String = "Cocina",
     onChangeStation: () -> Unit = {},
+    onManageAvailability: () -> Unit = {},
     onHelpClick: () -> Unit = {},
     onSignOut: () -> Unit = {},
     showTopBar: Boolean = false
@@ -142,7 +144,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Card contenedora con la lista de opciones (Cambiar estacion, Ayuda, Cerrar sesion)
+            // Card contenedora con la lista de opciones (Cambiar estacion, Disponibilidad, Ayuda, Cerrar sesion)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -161,7 +163,16 @@ fun ProfileScreen(
 
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-                    // Opcion 2: Ayuda
+                    // Opción 2: Disponibilidad de carta
+                    ProfileOptionRow(
+                        icon = Icons.Default.ListAlt,
+                        title = "Disponibilidad de carta",
+                        onClick = onManageAvailability
+                    )
+
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                    // Opcion 3: Ayuda
                     ProfileOptionRow(
                         icon = Icons.Default.HelpOutline,
                         title = stringResource(R.string.help_label),
@@ -170,7 +181,7 @@ fun ProfileScreen(
 
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-                    // Opcion 3: Cerrar sesion
+                    // Opcion 4: Cerrar sesion
                     ProfileOptionRow(
                         icon = Icons.AutoMirrored.Filled.Logout,
                         title = stringResource(R.string.logout_action),

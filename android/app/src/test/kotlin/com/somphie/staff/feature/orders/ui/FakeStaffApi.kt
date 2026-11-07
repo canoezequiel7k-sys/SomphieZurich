@@ -179,4 +179,36 @@ class FakeStaffApi : StaffApi {
         )
         return retrofit2.Response.success(newOrder)
     }
+
+    override suspend fun updateProductAvailability(
+        productId: String,
+        idempotencyKey: String,
+        request: com.somphie.staff.core.network.ProductAvailabilityRequest
+    ): retrofit2.Response<com.somphie.staff.core.network.ActionResult> {
+        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
+        return retrofit2.Response.success(
+            com.somphie.staff.core.network.ActionResult(
+                id = productId,
+                status = "UPDATED",
+                version = 1L,
+                items = emptyList()
+            )
+        )
+    }
+
+    override suspend fun updateOptionAvailability(
+        optionId: String,
+        idempotencyKey: String,
+        request: com.somphie.staff.core.network.OptionAvailabilityRequest
+    ): retrofit2.Response<com.somphie.staff.core.network.ActionResult> {
+        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
+        return retrofit2.Response.success(
+            com.somphie.staff.core.network.ActionResult(
+                id = optionId,
+                status = "UPDATED",
+                version = 1L,
+                items = emptyList()
+            )
+        )
+    }
 }

@@ -5,6 +5,7 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -115,6 +116,22 @@ interface StaffApi {
         @Header("Idempotency-Key") idempotencyKey: String,
         @Body request: CreateStaffOrderRequest
     ): Response<StaffOrder>
+
+    // Cambia la disponibilidad operativa de un producto
+    @PATCH("staff/products/{productId}/availability")
+    suspend fun updateProductAvailability(
+        @Path("productId") productId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: ProductAvailabilityRequest
+    ): Response<ActionResult>
+
+    // Cambia la disponibilidad operativa de una opción
+    @PATCH("staff/options/{optionId}/availability")
+    suspend fun updateOptionAvailability(
+        @Path("optionId") optionId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: OptionAvailabilityRequest
+    ): Response<ActionResult>
 
     // --- Endpoints de Pedidos ---
     @GET("staff/orders")

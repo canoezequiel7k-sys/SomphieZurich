@@ -283,3 +283,25 @@ data class CreateOrderItemRequest(
     val quantity: Int,
     val note: String? = null
 )
+
+// --- Disponibilidad de Productos y Opciones Staff ---
+@Serializable
+data class ProductAvailabilityRequest(
+    val available: Boolean,
+    val reasonCode: String? = null // OUT_OF_STOCK, TEMPORARILY_UNAVAILABLE, RESTOCKED
+)
+
+@Serializable
+data class OptionAvailabilityRequest(
+    val available: Boolean,
+    val reasonCode: String? = null
+)
+
+@Serializable
+data class StaffProductAvailability(
+    val productId: String,
+    val name: String,
+    val category: String,
+    val available: Boolean,
+    val priceMinor: Long
+)

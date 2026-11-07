@@ -1146,6 +1146,13 @@ El dueño delegó: *"toma las mejores decisiones posibles para que sea escalable
 - **Validación:** `gradle_build` ejecutó la compilación Kotlin y la suite de 24 pruebas unitarias (`CreateOrderViewModelTest` incluido): `BUILD SUCCESSFUL`, 24/24 pruebas pasando en VERDE.
 - **Archivos tocados:** `CreateOrderScreen.kt`, `CreateOrderViewModel.kt`, `OrdersRepository.kt`, `ApiModels.kt`, `StaffApi.kt`, `TableDetailScreen.kt`, `HomeScreen.kt`, `FakeStaffApi.kt`, `CreateOrderViewModelTest.kt`, `advances.md`, `ROADMAP_ANDROID_DEV.md`.
 
+### 2026-10-21 — Disponibilidad de Productos y Opciones de Carta (`SC-S-11`, `WP-AND-53`) ✅
+- **Qué:** Se implementó la pantalla de gestión de disponibilidad de carta (`AvailabilityScreen.kt`, `AvailabilityViewModel.kt`, `AvailabilityRepository.kt`) consumiendo los endpoints PATCH de disponibilidad de productos (`PATCH /staff/products/{productId}/availability`) y opciones (`PATCH /staff/options/{optionId}/availability`). Incluye buscador en tiempo real por nombre/categoría, tarjetas informativas con precio y categoría, badges visuales de estado ("Disponible" vs "Agotado") y switches interactivos sincronizados con `Idempotency-Key`.
+- **Por qué:** Permite al personal actualizar en tiempo real la carta y bloquear o desbloquear productos agotados sin salir de la aplicación.
+- **Qué estudiar:** Actualización reactiva de colecciones locales filtradas, sincronización de estados con switches de Material 3 y endpoints PATCH idempotentes.
+- **Validación:** `gradle_build` ejecutó la compilación Kotlin y la suite de 27 pruebas unitarias (`AvailabilityViewModelTest` incluido): `BUILD SUCCESSFUL`, 27/27 pruebas pasando en VERDE.
+- **Archivos tocados:** `AvailabilityScreen.kt`, `AvailabilityViewModel.kt`, `AvailabilityRepository.kt`, `ApiModels.kt`, `StaffApi.kt`, `ProfileScreen.kt`, `HomeScreen.kt`, `FakeStaffApi.kt`, `AvailabilityViewModelTest.kt`, `advances.md`, `ROADMAP_ANDROID_DEV.md`.
+
 ---
 ## 7. Conceptos para estudiar (glosario rápido de este tramo)
 
