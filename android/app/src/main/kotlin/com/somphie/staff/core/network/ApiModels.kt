@@ -269,3 +269,17 @@ data class StaffVoidAdjustmentRequest(
     val reasonCode: String,
     val note: String? = null
 )
+
+// --- Crear Pedido Staff ---
+@Serializable
+data class CreateStaffOrderRequest(
+    val items: List<CreateOrderItemRequest>,
+    val notes: String? = null
+)
+
+@Serializable
+data class CreateOrderItemRequest(
+    val productId: String,
+    val quantity: Int,
+    val note: String? = null
+)

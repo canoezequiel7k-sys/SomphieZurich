@@ -493,7 +493,7 @@ private fun PayDialog(
 }
 
 // Preview para Android Studio (Split / Design tab)
-@Preview(showBackground = true)
+@Preview()
 @Composable
 fun BillingScreenPreview() {
     SomphieTheme {

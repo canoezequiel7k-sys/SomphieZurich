@@ -163,7 +163,7 @@ La pantalla **Inicio** puede funcionar como contenedor de secciones. Mostrá sol
 | Ajustes y Cortesías | Descuentos % o monto fijo con límite 15% mozos (`WP-AND-71`) | ✅ Implementado con regla D-142 | Alta |
 | SC-S-10 | Cierre de sesión de mesa (`WP-AND-70`) | ✅ Implementado (normal y forzado) | Alta |
 | SC-S-11 | Disponibilidad de productos/opciones (`WP-AND-53`) | ⬜ No implementado | Bloqueado parcialmente por Q-27 |
-| SC-S-12 | Crear pedido en nombre del cliente | ⬜ No implementado | Fase posterior |
+| SC-S-12 | Crear pedido en nombre del cliente (`CreateOrderScreen.kt`) | ✅ Implementado con carta y notas | Alta |
 | SC-S-13 | Perfil/ajustes (`ProfileScreen.kt`) | ✅ Implementada con selector de estación | Media |
 | SC-S-14 | Estados globales de red/sesión/error | ✅ Implementados por pantalla | Continua |
 

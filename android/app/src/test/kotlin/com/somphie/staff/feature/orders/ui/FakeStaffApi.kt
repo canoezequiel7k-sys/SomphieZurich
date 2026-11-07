@@ -160,4 +160,23 @@ class FakeStaffApi : StaffApi {
             )
         )
     }
+
+    override suspend fun createStaffOrder(
+        sessionId: String,
+        idempotencyKey: String,
+        request: com.somphie.staff.core.network.CreateStaffOrderRequest
+    ): retrofit2.Response<StaffOrder> {
+        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
+        val newOrder = StaffOrder(
+            id = "ord-new",
+            code = "ORD-999",
+            sessionId = sessionId,
+            tableLabel = "Mesa 4",
+            status = "ACCEPTED",
+            createdAt = "12:35",
+            totalMinor = 640,
+            items = emptyList()
+        )
+        return retrofit2.Response.success(newOrder)
+    }
 }

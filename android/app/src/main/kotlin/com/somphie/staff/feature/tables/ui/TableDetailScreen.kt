@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
@@ -20,11 +22,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -45,8 +48,6 @@ import androidx.compose.ui.unit.sp
 import com.somphie.staff.R
 import com.somphie.staff.core.design.SomphieTheme
 import com.somphie.staff.core.design.StaffColors
-import com.somphie.staff.core.network.Bill
-import com.somphie.staff.core.network.StaffOrder
 import com.somphie.staff.core.network.StaffOrderItem
 import com.somphie.staff.core.network.StaffSession
 import com.somphie.staff.core.network.StaffSessionDetail
@@ -62,6 +63,7 @@ fun TableDetailScreen(
     viewModel: TableDetailViewModel,
     onNavigateBack: () -> Unit = {},
     onViewFullDetails: () -> Unit = {},
+    onCreateOrderForTable: () -> Unit = {},
     showTopBar: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -75,6 +77,7 @@ fun TableDetailScreen(
         tableLabel = tableLabel,
         onNavigateBack = onNavigateBack,
         onViewFullDetails = onViewFullDetails,
+        onCreateOrderForTable = onCreateOrderForTable,
         showTopBar = showTopBar
     )
 }
@@ -87,6 +90,7 @@ fun TableDetailContent(
     tableLabel: String,
     onNavigateBack: () -> Unit,
     onViewFullDetails: () -> Unit,
+    onCreateOrderForTable: () -> Unit = {},
     showTopBar: Boolean = true
 ) {
     Scaffold(
@@ -102,7 +106,6 @@ fun TableDetailContent(
                             fontSize = 20.sp
                         )
                     },
-                    // Boton de volver atras
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
@@ -111,7 +114,6 @@ fun TableDetailContent(
                             )
                         }
                     },
-                    // Menu de tres puntos a la derecha
                     actions = {
                         IconButton(onClick = {}) {
                             Icon(
@@ -131,51 +133,50 @@ fun TableDetailContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
         ) {
             when (state) {
-                // Indicador de carga
-                is TableDetailUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                // Indicador de carga centrado
+                is TableDetailUiState.Loading -> Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = StaffColors.Coffee)
+                }
+
                 // Mensaje de error
-                is TableDetailUiState.Error -> Text(text = state.message, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
+                is TableDetailUiState.Error -> Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = state.message, color = MaterialTheme.colorScheme.error)
+                }
+
+                // Contenido principal cuando se carga con exito
                 is TableDetailUiState.Success -> {
                     val detail = state.sessionDetail
                     Column(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            // Pastilla / Badge de estado de la mesa (ej: En preparación)
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Start
-                            ) {
-                                Surface(
-                                    color = StaffColors.Sage,
-                                    shape = MaterialTheme.shapes.medium
-                                ) {
-                                    Text(
-                                        text = "En preparación",
-                                        color = Color.White,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
-                                    )
-                                }
-                            }
+                            // Badge con el estado de la mesa (ej: En preparación, Ocupada)
+                            TableStatusBadge(status = detail.session.status)
 
-                            // Card contenedora con los "Pedidos de la mesa"
+                            // Card contenedora con los pedidos activos de la mesa
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(containerColor = Color.White)
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    // Titulo de la sección de pedidos
+                                    // Titulo de la lista de pedidos
                                     Text(
-                                        text = "Pedidos de la mesa",
+                                        text = stringResource(R.string.orders_title),
+                                        style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 17.sp,
                                         color = StaffColors.Coffee
@@ -277,24 +278,65 @@ fun TableDetailContent(
                             }
                         }
 
-                        // Boton principal al pie "Ver detalles"
-                        Button(
-                            onClick = onViewFullDetails,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = StaffColors.Caramel)
-                        ) {
-                            Text(
-                                text = "Ver detalles",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
+                        // Botones al pie: "Ver detalles" y "Tomar Pedido"
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = onViewFullDetails,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(52.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = StaffColors.Caramel)
+                            ) {
+                                Text(
+                                    text = "Ver detalles / Cobrar",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
+                            }
+
+                            OutlinedButton(
+                                onClick = onCreateOrderForTable,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(52.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null, tint = StaffColors.Coffee)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Tomar Pedido",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = StaffColors.Coffee
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+// Badge de estado de la mesa (ej: En preparación, Libre)
+@Composable
+private fun TableStatusBadge(status: String) {
+    val (bgColor, textColor, text) = when (status) {
+        "OPEN" -> Triple(StaffColors.SoftSageBg, StaffColors.Sage, stringResource(R.string.status_in_preparation))
+        "CLOSED" -> Triple(Color.LightGray, Color.DarkGray, "Cerrada")
+        else -> Triple(StaffColors.SoftSageBg, StaffColors.Sage, status)
+    }
+
+    Surface(
+        color = bgColor,
+        shape = CircleShape
+    ) {
+        Text(
+            text = text,
+            color = textColor,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+        )
     }
 }
 
@@ -305,36 +347,56 @@ fun TableDetailScreenPreview() {
     SomphieTheme {
         TableDetailContent(
             state = TableDetailUiState.Success(
+                tableLabel = "Mesa 4",
                 sessionDetail = StaffSessionDetail(
                     session = StaffSession(
                         id = "s1",
                         status = "OPEN",
                         tableLabel = "Mesa 4",
-                        openedAt = "2026-10-18T12:00:00Z"
+                        openedAt = "12:34"
                     ),
                     orders = listOf(
-                        StaffOrder(
+                        com.somphie.staff.core.network.StaffOrder(
                             id = "o1",
-                            code = "#001",
+                            code = "ORD-001",
                             sessionId = "s1",
-                            tableLabel = "4",
+                            tableLabel = "Mesa 4",
                             status = "ACCEPTED",
-                            createdAt = "2026-10-18T12:34:00Z",
+                            createdAt = "12:34",
+                            totalMinor = 1090,
                             items = listOf(
-                                StaffOrderItem("i1", "p1", "Latte", 2, 320, 640, "ACCEPTED"),
-                                StaffOrderItem("i2", "p2", "Tostado mixto", 1, 450, 450, "ACCEPTED")
-                            ),
-                            totalMinor = 1090
+                                StaffOrderItem(
+                                    id = "i1",
+                                    productId = "p1",
+                                    productName = "Latte",
+                                    quantity = 2,
+                                    unitPriceMinor = 320,
+                                    totalMinor = 640,
+                                    status = "IN_PREPARATION",
+                                    optionsSummary = "Leche de almendra"
+                                ),
+                                StaffOrderItem(
+                                    id = "i2",
+                                    productId = "p2",
+                                    productName = "Tostado mixto",
+                                    quantity = 1,
+                                    unitPriceMinor = 450,
+                                    totalMinor = 450,
+                                    status = "IN_PREPARATION"
+                                )
+                            )
                         )
                     ),
-                    bill = Bill(balanceMinor = 1090)
-                ),
-                tableLabel = "Mesa 4"
+                    bill = com.somphie.staff.core.network.Bill(
+                        currency = "ARS",
+                        chargesMinor = 1090,
+                        balanceMinor = 1090
+                    )
+                )
             ),
             tableLabel = "Mesa 4",
             onNavigateBack = {},
-            onViewFullDetails = {},
-            showTopBar = true
+            onViewFullDetails = {}
         )
     }
 }

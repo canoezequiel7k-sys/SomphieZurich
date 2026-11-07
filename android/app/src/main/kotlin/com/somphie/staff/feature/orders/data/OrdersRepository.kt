@@ -38,4 +38,26 @@ class OrdersRepository @Inject constructor(
                 RejectOrderRequest(reasonCode = reasonCode, reasonText = reasonText)
             )
         }
+
+    // Crear un nuevo pedido en nombre del cliente para la mesa
+    suspend fun createStaffOrder(
+        sessionId: String,
+        items: List<com.somphie.staff.core.network.CreateOrderItemRequest>,
+        notes: String? = null,
+        idempotencyKey: String = UUID.randomUUID().toString()
+    ): Result<StaffOrder> = runCatching {
+        val response = api.createStaffOrder(
+            sessionId = sessionId,
+            idempotencyKey = idempotencyKey,
+            request = com.somphie.staff.core.network.CreateStaffOrderRequest(
+                items = items,
+                notes = notes
+            )
+        )
+        if (response.isSuccessful && response.body() != null) {
+            response.body()!!
+        } else {
+            throw Exception("Error al crear pedido: ${response.code()}")
+        }
+    }
 }

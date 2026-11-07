@@ -89,6 +89,9 @@ fun HomeScreen(
     // Sub-estado para ver la pantalla de Cobro en Caja
     var selectedBillingSessionId by rememberSaveable { mutableStateOf<String?>(null) }
 
+    // Sub-estado para tomar pedido a nombre del cliente (SC-S-12)
+    var selectedCreateOrderSessionId by rememberSaveable { mutableStateOf<String?>(null) }
+
     // Estado dinamico de la estacion activa (ej: Cocina o Barra)
     var activeStationName by rememberSaveable {
         mutableStateOf(profile.stations.firstOrNull()?.name ?: "Cocina")
@@ -104,6 +107,7 @@ fun HomeScreen(
                 // Titulo dinamico segun la seccion activa
                 title = {
                     val titleText = when {
+                        selectedCreateOrderSessionId != null -> "Tomar Pedido"
                         selectedBillingSessionId != null -> "Cobro en Caja"
                         selectedTableSessionId != null -> "Detalle de Mesa"
                         selectedStationCode == "KITCHEN" -> stringResource(R.string.kitchen_title)
@@ -121,11 +125,13 @@ fun HomeScreen(
                         fontSize = 18.sp
                     )
                 },
-                // Icono de navegacion: ArrowBack en Perfil, Pedidos, Mesas, Cobro y Detalle; Menu en Inicio
+                // Icono de navegacion: ArrowBack en Perfil, Pedidos, Mesas, Tomar Pedido, Cobro y Detalle; Menu en Inicio
                 navigationIcon = {
-                    if (selectedBillingSessionId != null || selectedTableSessionId != null || selectedStationCode != null || selectedOrderId != null || selectedTab != 0) {
+                    if (selectedCreateOrderSessionId != null || selectedBillingSessionId != null || selectedTableSessionId != null || selectedStationCode != null || selectedOrderId != null || selectedTab != 0) {
                         IconButton(onClick = {
-                            if (selectedBillingSessionId != null) {
+                            if (selectedCreateOrderSessionId != null) {
+                                selectedCreateOrderSessionId = null
+                            } else if (selectedBillingSessionId != null) {
                                 selectedBillingSessionId = null
                             } else if (selectedTableSessionId != null) {
                                 selectedTableSessionId = null
@@ -171,13 +177,14 @@ fun HomeScreen(
             ) {
                 // Pestaña 0: Inicio
                 NavigationBarItem(
-                    selected = selectedTab == 0 && selectedOrderId == null && selectedStationCode == null && selectedTableSessionId == null && selectedBillingSessionId == null,
+                    selected = selectedTab == 0 && selectedOrderId == null && selectedStationCode == null && selectedTableSessionId == null && selectedBillingSessionId == null && selectedCreateOrderSessionId == null,
                     onClick = {
                         selectedTab = 0
                         selectedOrderId = null
                         selectedStationCode = null
                         selectedTableSessionId = null
                         selectedBillingSessionId = null
+                        selectedCreateOrderSessionId = null
                     },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
                     label = { Text("Inicio") }
@@ -185,13 +192,14 @@ fun HomeScreen(
 
                 // Pestaña 1: Pedidos
                 NavigationBarItem(
-                    selected = (selectedTab == 1 || selectedOrderId != null) && selectedStationCode == null && selectedTableSessionId == null && selectedBillingSessionId == null,
+                    selected = (selectedTab == 1 || selectedOrderId != null) && selectedStationCode == null && selectedTableSessionId == null && selectedBillingSessionId == null && selectedCreateOrderSessionId == null,
                     onClick = {
                         selectedTab = 1
                         selectedOrderId = null
                         selectedStationCode = null
                         selectedTableSessionId = null
                         selectedBillingSessionId = null
+                        selectedCreateOrderSessionId = null
                     },
                     icon = { Icon(Icons.Default.ReceiptLong, contentDescription = "Pedidos") },
                     label = { Text("Pedidos") }
@@ -199,13 +207,14 @@ fun HomeScreen(
 
                 // Pestaña 2: Mesas
                 NavigationBarItem(
-                    selected = (selectedTab == 2 || selectedTableSessionId != null || selectedBillingSessionId != null) && selectedStationCode == null,
+                    selected = (selectedTab == 2 || selectedTableSessionId != null || selectedBillingSessionId != null || selectedCreateOrderSessionId != null) && selectedStationCode == null,
                     onClick = {
                         selectedTab = 2
                         selectedOrderId = null
                         selectedStationCode = null
                         selectedTableSessionId = null
                         selectedBillingSessionId = null
+                        selectedCreateOrderSessionId = null
                     },
                     icon = { Icon(Icons.Default.TableBar, contentDescription = "Mesas") },
                     label = { Text("Mesas") }
@@ -213,13 +222,14 @@ fun HomeScreen(
 
                 // Pestaña 3: Perfil
                 NavigationBarItem(
-                    selected = selectedTab == 3 && selectedOrderId == null && selectedStationCode == null && selectedTableSessionId == null && selectedBillingSessionId == null,
+                    selected = selectedTab == 3 && selectedOrderId == null && selectedStationCode == null && selectedTableSessionId == null && selectedBillingSessionId == null && selectedCreateOrderSessionId == null,
                     onClick = {
                         selectedTab = 3
                         selectedOrderId = null
                         selectedStationCode = null
                         selectedTableSessionId = null
                         selectedBillingSessionId = null
+                        selectedCreateOrderSessionId = null
                     },
                     icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
                     label = { Text("Perfil") }
@@ -233,7 +243,21 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (selectedBillingSessionId != null) {
+            if (selectedCreateOrderSessionId != null) {
+                // Vista de Tomar Pedido a Nombre del Cliente (SC-S-12)
+                val createOrderViewModel: com.somphie.staff.feature.orders.ui.CreateOrderViewModel = hiltViewModel()
+                com.somphie.staff.feature.orders.ui.CreateOrderScreen(
+                    sessionId = selectedCreateOrderSessionId!!,
+                    viewModel = createOrderViewModel,
+                    onNavigateBack = { selectedCreateOrderSessionId = null },
+                    onOrderCreated = {
+                        selectedCreateOrderSessionId = null
+                        selectedTableSessionId = null
+                        selectedTab = 1
+                    },
+                    showTopBar = false
+                )
+            } else if (selectedBillingSessionId != null) {
                 // Vista de Cobro en Caja
                 val billingViewModel: BillingViewModel = hiltViewModel()
                 BillingScreen(
@@ -255,6 +279,7 @@ fun HomeScreen(
                     viewModel = tableDetailViewModel,
                     onNavigateBack = { selectedTableSessionId = null },
                     onViewFullDetails = { selectedBillingSessionId = selectedTableSessionId },
+                    onCreateOrderForTable = { selectedCreateOrderSessionId = selectedTableSessionId },
                     showTopBar = false
                 )
             } else if (selectedStationCode != null) {

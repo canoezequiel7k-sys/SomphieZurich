@@ -1139,6 +1139,13 @@ El dueño delegó: *"toma las mejores decisiones posibles para que sea escalable
 - **Validación:** `gradle_build` ejecutó la compilación Kotlin y la suite de 20 pruebas unitarias (`BillingViewModelTest` incluido): `BUILD SUCCESSFUL`, 20/20 pruebas pasando en VERDE.
 - **Archivos tocados:** `BillingScreen.kt`, `BillingViewModel.kt`, `BillingRepository.kt`, `ApiModels.kt`, `StaffApi.kt`, `HomeScreen.kt`, `TablesBoardScreen.kt`, `TableDetailScreen.kt`, `FakeStaffApi.kt`, `BillingViewModelTest.kt`, `advances.md`, `ROADMAP_ANDROID_DEV.md`.
 
+### 2026-10-21 — Crear Pedido en Nombre del Cliente (`SC-S-12`) ✅
+- **Qué:** Se implementó la pantalla y flujo para que los mozos/personal puedan tomar pedidos a nombre del cliente desde la app (`CreateOrderScreen.kt`, `CreateOrderViewModel.kt`, `OrdersRepository.kt`). Incluye selección rápida de productos de la carta con selectores incremento/decremento (`+`/`-`), campo de aclaraciones/notas para cocina/barra, resumen dinámico de importe/ítems y envío idempotente (`POST /staff/sessions/{sessionId}/orders`).
+- **Por qué:** Permite atender mesas cuyos clientes no utilicen dispositivo móvil o soliciten asistencia directa del personal.
+- **Qué estudiar:** Selección dinámica de cantidades en estado reactivo, desacoplamiento para `@Preview` y creación de pedidos staff.
+- **Validación:** `gradle_build` ejecutó la compilación Kotlin y la suite de 24 pruebas unitarias (`CreateOrderViewModelTest` incluido): `BUILD SUCCESSFUL`, 24/24 pruebas pasando en VERDE.
+- **Archivos tocados:** `CreateOrderScreen.kt`, `CreateOrderViewModel.kt`, `OrdersRepository.kt`, `ApiModels.kt`, `StaffApi.kt`, `TableDetailScreen.kt`, `HomeScreen.kt`, `FakeStaffApi.kt`, `CreateOrderViewModelTest.kt`, `advances.md`, `ROADMAP_ANDROID_DEV.md`.
+
 ---
 ## 7. Conceptos para estudiar (glosario rápido de este tramo)
 

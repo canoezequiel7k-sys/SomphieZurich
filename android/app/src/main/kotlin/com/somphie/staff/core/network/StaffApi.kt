@@ -108,6 +108,14 @@ interface StaffApi {
         @Body request: StaffVoidAdjustmentRequest
     ): Response<StaffAdjustmentResponse>
 
+    // Crear un pedido a nombre del cliente para una sesión de mesa
+    @POST("staff/sessions/{sessionId}/orders")
+    suspend fun createStaffOrder(
+        @Path("sessionId") sessionId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: CreateStaffOrderRequest
+    ): Response<StaffOrder>
+
     // --- Endpoints de Pedidos ---
     @GET("staff/orders")
     suspend fun getOrders(
