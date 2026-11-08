@@ -285,6 +285,7 @@ fun HomeScreen(
                 BillingScreen(
                     sessionId = selectedBillingSessionId!!,
                     viewModel = billingViewModel,
+                    permissions = profile.permissions.toSet(),
                     onNavigateBack = { selectedBillingSessionId = null },
                     onSessionClosed = {
                         selectedBillingSessionId = null

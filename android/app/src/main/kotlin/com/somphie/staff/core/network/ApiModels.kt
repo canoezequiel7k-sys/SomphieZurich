@@ -196,13 +196,53 @@ data class Participant(
 )
 
 @Serializable
+data class BillLine(
+    val orderCode: String,
+    val productName: String,
+    val quantity: Int,
+    val unitPriceMinor: Long,
+    val lineTotalMinor: Long,
+)
+
+@Serializable
+data class BillAdjustment(
+    val id: String,
+    val kind: String,
+    val label: String,
+    val amountMinor: Long,
+)
+
+@Serializable
+data class PendingOrderSummary(
+    val orderCode: String,
+    val totalMinor: Long,
+)
+
+@Serializable
+data class Payment(
+    val id: String,
+    val kind: String = "PAYMENT", // PAYMENT, REFUND
+    val method: String,           // CASH_COUNTER, SIMULATED_ONLINE
+    val status: String,           // SUCCEEDED, FAILED, VOIDED
+    val amountMinor: Long,
+    val tipMinor: Long = 0L,
+    val payerName: String? = null,
+    val payerLabel: String? = null,
+    val createdAt: String,
+)
+
+@Serializable
 data class Bill(
     val currency: String = "ARS",
     val chargesMinor: Long = 0,
     val adjustmentsMinor: Long = 0,
     val paidMinor: Long = 0,
     val balanceMinor: Long = 0,
-    val tipsMinor: Long = 0
+    val tipsMinor: Long = 0,
+    val lines: List<BillLine> = emptyList(),
+    val adjustments: List<BillAdjustment> = emptyList(),
+    val payments: List<Payment> = emptyList(),
+    val pendingOrdersNotIncluded: List<PendingOrderSummary> = emptyList(),
 )
 
 @Serializable
@@ -213,61 +253,77 @@ data class StaffSessionDetail(
     val bill: Bill
 )
 
-// --- Pagos y Caja Staff ---
+// --- Pagos, Caja y Cierre Staff (Alineados con OpenAPI) ---
 @Serializable
-data class StaffPaymentRequest(
-    val method: String = "CASH", // CASH, SIMULATED_CARD
-    val amountMinor: Long,
-    val tipMinor: Long = 0L
-)
-
-@Serializable
-data class StaffPaymentResponse(
-    val id: String,
-    val method: String,
+data class CreateCashPaymentRequest(
     val amountMinor: Long,
     val tipMinor: Long = 0L,
-    val status: String, // COMPLETED, REFUNDED, DECLINED
-    val createdAt: String
+    val payerLabel: String? = null,
 )
 
 @Serializable
-data class StaffRefundRequest(
-    val reasonCode: String,
-    val note: String? = null
+data class PaymentResult(
+    val payment: Payment,
+    val bill: Bill,
 )
 
 @Serializable
-data class CloseSessionRequest(
-    val force: Boolean = false,
-    val reasonCode: String? = null
+data class ReasonRequest(
+    val reason: String,
+)
+
+@Serializable
+data class CreateRefundRequest(
+    val amountMinor: Long,
+    val reason: String,
 )
 
 // --- Ajustes, Descuentos y Cortesías Staff ---
+object AdjustmentKind {
+    const val DISCOUNT_PERCENT = "DISCOUNT_PERCENT"
+    const val DISCOUNT_AMOUNT = "DISCOUNT_AMOUNT"
+    const val COURTESY_ITEM = "COURTESY_ITEM"
+    const val MANUAL_ADJUSTMENT = "MANUAL_ADJUSTMENT"
+}
+
+enum class AdjustmentReasonCode(val code: String, val label: String) {
+    COURTESY_HOUSE("COURTESY_HOUSE", "Cortesía de la casa"),
+    SERVICE_ISSUE("SERVICE_ISSUE", "Problema de servicio"),
+    PROMOTION("PROMOTION", "Promoción comercial"),
+    STAFF("STAFF", "Consumo de personal"),
+    ERROR_CORRECTION("ERROR_CORRECTION", "Corrección de error"),
+    OTHER("OTHER", "Otro motivo");
+
+    companion object {
+        fun fromCode(code: String): AdjustmentReasonCode =
+            entries.firstOrNull { it.code == code } ?: OTHER
+    }
+}
+
 @Serializable
-data class StaffAdjustmentRequest(
-    val type: String, // DISCOUNT_PERCENT, DISCOUNT_AMOUNT, MANUAL_ADJUSTMENT
-    val valueMinor: Long? = null,
-    val percent: Int? = null,
-    val reasonCode: String, // WAITER_COURTESY, PROMOTION, SERVICE_DISCONTENT
-    val note: String? = null
+data class CreateAdjustmentRequest(
+    val kind: String,
+    val percentBp: Int? = null,
+    val amountMinor: Long? = null,
+    val orderItemId: String? = null,
+    val reasonCode: String,
+    val reasonText: String? = null,
 )
 
 @Serializable
-data class StaffAdjustmentResponse(
+data class StaffAdjustment(
     val id: String,
-    val type: String,
-    val amountMinor: Long,
-    val percent: Int? = null,
-    val reasonCode: String,
+    val kind: String,
     val status: String, // APPLIED, VOIDED
-    val createdAt: String
-)
-
-@Serializable
-data class StaffVoidAdjustmentRequest(
+    val amountMinor: Long,
+    val percentBp: Int? = null,
+    val orderItemId: String? = null,
     val reasonCode: String,
-    val note: String? = null
+    val reasonText: String? = null,
+    val appliedBy: String? = null,
+    val appliedAt: String,
+    val voidedAt: String? = null,
+    val voidReason: String? = null,
 )
 
 // --- Crear Pedido Staff ---

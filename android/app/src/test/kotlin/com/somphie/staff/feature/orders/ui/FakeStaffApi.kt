@@ -18,6 +18,8 @@ class FakeStaffApi : StaffApi {
     var orderDetail: StaffOrder? = null
     var tablesList: List<StaffTable> = emptyList()
     var shouldFail = false
+    var failureToThrow: Throwable? = null
+    var sessionDetail: com.somphie.staff.core.network.StaffSessionDetail? = null
     var lastAcceptedOrderId: String? = null
     var lastRejectedOrderId: String? = null
     var lastRejectReasonCode: String? = null
@@ -50,8 +52,6 @@ class FakeStaffApi : StaffApi {
         return StaffTableBoard(items = tablesList)
     }
 
-    var sessionDetail: com.somphie.staff.core.network.StaffSessionDetail? = null
-
     override suspend fun getSessionDetail(sessionId: String): com.somphie.staff.core.network.StaffSessionDetail {
         if (shouldFail) throw IOException("Error al obtener detalle de mesa")
         return sessionDetail ?: throw IllegalStateException("Session not found")
@@ -73,91 +73,133 @@ class FakeStaffApi : StaffApi {
     override suspend fun createPayment(
         sessionId: String,
         idempotencyKey: String,
-        request: com.somphie.staff.core.network.StaffPaymentRequest
-    ): retrofit2.Response<com.somphie.staff.core.network.StaffPaymentResponse> {
-        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
-        return retrofit2.Response.success(
-            com.somphie.staff.core.network.StaffPaymentResponse(
-                id = "pay-1",
-                method = request.method,
-                amountMinor = request.amountMinor,
-                tipMinor = request.tipMinor,
-                status = "COMPLETED",
-                createdAt = "12:30"
-            )
+        request: com.somphie.staff.core.network.CreateCashPaymentRequest
+    ): com.somphie.staff.core.network.PaymentResult {
+        failureToThrow?.let { throw it }
+        if (shouldFail) throw RuntimeException("Error en pago")
+        val currentBill = sessionDetail?.bill ?: com.somphie.staff.core.network.Bill(currency = "ARS", chargesMinor = 0, balanceMinor = 0)
+        val payment = com.somphie.staff.core.network.Payment(
+            id = "pay-1",
+            method = "CASH_COUNTER",
+            status = "SUCCEEDED",
+            amountMinor = request.amountMinor,
+            tipMinor = request.tipMinor,
+            payerLabel = request.payerLabel,
+            createdAt = "12:30"
+        )
+        return com.somphie.staff.core.network.PaymentResult(
+            payment = payment,
+            bill = currentBill
+        )
+    }
+
+    override suspend fun voidPayment(
+        paymentId: String,
+        idempotencyKey: String,
+        request: com.somphie.staff.core.network.ReasonRequest
+    ): com.somphie.staff.core.network.PaymentResult {
+        failureToThrow?.let { throw it }
+        if (shouldFail) throw RuntimeException("Error en void payment")
+        val currentBill = sessionDetail?.bill ?: com.somphie.staff.core.network.Bill(currency = "ARS", chargesMinor = 0, balanceMinor = 0)
+        val payment = com.somphie.staff.core.network.Payment(
+            id = paymentId,
+            method = "CASH_COUNTER",
+            status = "VOIDED",
+            amountMinor = 1000,
+            tipMinor = 0,
+            createdAt = "12:35"
+        )
+        return com.somphie.staff.core.network.PaymentResult(
+            payment = payment,
+            bill = currentBill
         )
     }
 
     override suspend fun refundPayment(
-        paymentId: String,
+        sessionId: String,
         idempotencyKey: String,
-        request: com.somphie.staff.core.network.StaffRefundRequest
-    ): retrofit2.Response<com.somphie.staff.core.network.StaffPaymentResponse> {
-        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
-        return retrofit2.Response.success(
-            com.somphie.staff.core.network.StaffPaymentResponse(
-                id = paymentId,
-                method = "CASH",
-                amountMinor = 1090,
-                tipMinor = 0,
-                status = "REFUNDED",
-                createdAt = "12:35"
-            )
+        request: com.somphie.staff.core.network.CreateRefundRequest
+    ): com.somphie.staff.core.network.PaymentResult {
+        failureToThrow?.let { throw it }
+        if (shouldFail) throw RuntimeException("Error en refund")
+        val currentBill = sessionDetail?.bill ?: com.somphie.staff.core.network.Bill(currency = "ARS", chargesMinor = 0, balanceMinor = 0)
+        val payment = com.somphie.staff.core.network.Payment(
+            id = "ref-1",
+            kind = "REFUND",
+            method = "CASH_COUNTER",
+            status = "SUCCEEDED",
+            amountMinor = request.amountMinor,
+            tipMinor = 0,
+            createdAt = "12:35"
+        )
+        return com.somphie.staff.core.network.PaymentResult(
+            payment = payment,
+            bill = currentBill
         )
     }
 
     override suspend fun closeSession(
+        sessionId: String
+    ): com.somphie.staff.core.network.StaffSession {
+        if (shouldFail) throw RuntimeException("Error en close")
+        return com.somphie.staff.core.network.StaffSession(
+            id = sessionId,
+            status = "CLOSED",
+            tableLabel = "Mesa 4",
+            openedAt = "12:00",
+            closedAt = "12:40"
+        )
+    }
+
+    override suspend fun forceCloseSession(
         sessionId: String,
         idempotencyKey: String,
-        request: com.somphie.staff.core.network.CloseSessionRequest
-    ): retrofit2.Response<com.somphie.staff.core.network.StaffSession> {
-        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
-        return retrofit2.Response.success(
-            com.somphie.staff.core.network.StaffSession(
-                id = sessionId,
-                status = "CLOSED",
-                tableLabel = "Mesa 4",
-                openedAt = "12:00",
-                closedAt = "12:40"
-            )
+        request: com.somphie.staff.core.network.ReasonRequest
+    ): com.somphie.staff.core.network.StaffSession {
+        if (shouldFail) throw RuntimeException("Error en force-close")
+        return com.somphie.staff.core.network.StaffSession(
+            id = sessionId,
+            status = "CLOSED",
+            tableLabel = "Mesa 4",
+            openedAt = "12:00",
+            closedAt = "12:40"
         )
     }
 
     override suspend fun createAdjustment(
         sessionId: String,
         idempotencyKey: String,
-        request: com.somphie.staff.core.network.StaffAdjustmentRequest
-    ): retrofit2.Response<com.somphie.staff.core.network.StaffAdjustmentResponse> {
-        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
-        return retrofit2.Response.success(
-            com.somphie.staff.core.network.StaffAdjustmentResponse(
-                id = "adj-1",
-                type = request.type,
-                amountMinor = request.valueMinor ?: 100L,
-                percent = request.percent,
-                reasonCode = request.reasonCode,
-                status = "APPLIED",
-                createdAt = "12:35"
-            )
+        request: com.somphie.staff.core.network.CreateAdjustmentRequest
+    ): com.somphie.staff.core.network.StaffAdjustment {
+        if (shouldFail) throw RuntimeException("Error en adjustment")
+        return com.somphie.staff.core.network.StaffAdjustment(
+            id = "adj-1",
+            kind = request.kind,
+            amountMinor = request.amountMinor ?: 100L,
+            percentBp = request.percentBp,
+            reasonCode = request.reasonCode,
+            reasonText = request.reasonText,
+            status = "APPLIED",
+            appliedAt = "12:35"
         )
     }
 
     override suspend fun voidAdjustment(
         adjustmentId: String,
         idempotencyKey: String,
-        request: com.somphie.staff.core.network.StaffVoidAdjustmentRequest
-    ): retrofit2.Response<com.somphie.staff.core.network.StaffAdjustmentResponse> {
-        if (shouldFail) return retrofit2.Response.error(400, okhttp3.ResponseBody.create(null, "Error"))
-        return retrofit2.Response.success(
-            com.somphie.staff.core.network.StaffAdjustmentResponse(
-                id = adjustmentId,
-                type = "DISCOUNT_PERCENT",
-                amountMinor = 100L,
-                percent = 10,
-                reasonCode = request.reasonCode,
-                status = "VOIDED",
-                createdAt = "12:40"
-            )
+        request: com.somphie.staff.core.network.ReasonRequest
+    ): com.somphie.staff.core.network.StaffAdjustment {
+        if (shouldFail) throw RuntimeException("Error en void adjustment")
+        return com.somphie.staff.core.network.StaffAdjustment(
+            id = adjustmentId,
+            kind = "DISCOUNT_PERCENT",
+            amountMinor = 100L,
+            percentBp = 1000,
+            reasonCode = "SERVICE_ISSUE",
+            status = "VOIDED",
+            appliedAt = "12:35",
+            voidedAt = "12:40",
+            voidReason = request.reason
         )
     }
 

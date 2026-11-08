@@ -1,148 +1,164 @@
 package com.somphie.staff.feature.billing.data
 
-import com.somphie.staff.core.network.CloseSessionRequest
+import com.somphie.staff.core.network.CreateAdjustmentRequest
+import com.somphie.staff.core.network.CreateCashPaymentRequest
+import com.somphie.staff.core.network.CreateRefundRequest
+import com.somphie.staff.core.network.PaymentResult
+import com.somphie.staff.core.network.ReasonRequest
+import com.somphie.staff.core.network.StaffAdjustment
 import com.somphie.staff.core.network.StaffApi
-import com.somphie.staff.core.network.StaffPaymentRequest
-import com.somphie.staff.core.network.StaffPaymentResponse
-import com.somphie.staff.core.network.StaffRefundRequest
 import com.somphie.staff.core.network.StaffSession
 import com.somphie.staff.core.network.StaffSessionDetail
+import com.somphie.staff.core.network.apiCall
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.serialization.json.Json
 
-// Repositorio de Caja, Cobro y Pagos
+// Repositorio de Caja, Cobro, Ajustes y Cierres (Alineado con OpenAPI)
 @Singleton
 class BillingRepository @Inject constructor(
-    private val api: StaffApi
+    private val api: StaffApi,
+    private val json: Json = Json { ignoreUnknownKeys = true; explicitNulls = false }
 ) {
     // Obtener la cuenta y el detalle de la sesión
     suspend fun getSessionDetail(sessionId: String): Result<StaffSessionDetail> {
         return runCatching {
-            api.getSessionDetail(sessionId)
+            apiCall(json) { api.getSessionDetail(sessionId) }
         }
     }
 
-    // Registrar un pago en caja (Efectivo o Tarjeta simulada)
+    // Registrar un pago en caja (Efectivo)
     suspend fun createPayment(
         sessionId: String,
         idempotencyKey: String,
         amountMinor: Long,
         tipMinor: Long = 0L,
-        method: String = "CASH"
-    ): Result<StaffPaymentResponse> {
+        payerLabel: String? = null
+    ): Result<PaymentResult> {
         return runCatching {
-            val response = api.createPayment(
-                sessionId = sessionId,
-                idempotencyKey = idempotencyKey,
-                request = StaffPaymentRequest(
-                    method = method,
-                    amountMinor = amountMinor,
-                    tipMinor = tipMinor
+            apiCall(json) {
+                api.createPayment(
+                    sessionId = sessionId,
+                    idempotencyKey = idempotencyKey,
+                    request = CreateCashPaymentRequest(
+                        amountMinor = amountMinor,
+                        tipMinor = tipMinor,
+                        payerLabel = payerLabel
+                    )
                 )
-            )
-            if (response.isSuccessful && response.body() != null) {
-                response.body()!!
-            } else {
-                throw Exception("Error al registrar el pago: ${response.code()}")
             }
         }
     }
 
-    // Reembolsar o anular un pago
-    suspend fun refundPayment(
+    // Anular un pago registrado en caja
+    suspend fun voidPayment(
         paymentId: String,
         idempotencyKey: String,
-        reasonCode: String,
-        note: String? = null
-    ): Result<StaffPaymentResponse> {
+        reason: String
+    ): Result<PaymentResult> {
         return runCatching {
-            val response = api.refundPayment(
-                paymentId = paymentId,
-                idempotencyKey = idempotencyKey,
-                request = StaffRefundRequest(
-                    reasonCode = reasonCode,
-                    note = note
+            apiCall(json) {
+                api.voidPayment(
+                    paymentId = paymentId,
+                    idempotencyKey = idempotencyKey,
+                    request = ReasonRequest(reason = reason)
                 )
-            )
-            if (response.isSuccessful && response.body() != null) {
-                response.body()!!
-            } else {
-                throw Exception("Error al procesar el reembolso: ${response.code()}")
             }
         }
     }
 
-    // Cerrar la sesión de la mesa (normal o forzada)
-    suspend fun closeSession(
+    // Reembolsar saldo de una sesión
+    suspend fun refundPayment(
         sessionId: String,
         idempotencyKey: String,
-        force: Boolean = false,
-        reasonCode: String? = null
-    ): Result<StaffSession> {
+        amountMinor: Long,
+        reason: String
+    ): Result<PaymentResult> {
         return runCatching {
-            val response = api.closeSession(
-                sessionId = sessionId,
-                idempotencyKey = idempotencyKey,
-                request = CloseSessionRequest(
-                    force = force,
-                    reasonCode = reasonCode
+            apiCall(json) {
+                api.refundPayment(
+                    sessionId = sessionId,
+                    idempotencyKey = idempotencyKey,
+                    request = CreateRefundRequest(
+                        amountMinor = amountMinor,
+                        reason = reason
+                    )
                 )
-            )
-            if (response.isSuccessful && response.body() != null) {
-                response.body()!!
-            } else {
-                throw Exception("Error al cerrar la sesión: ${response.code()}")
             }
         }
     }
 
-    // Aplicar un descuento o cortesía
+    // Cerrar normalmente la sesión de la mesa (sin cuerpo ni Idempotency-Key)
+    suspend fun closeSession(
+        sessionId: String
+    ): Result<StaffSession> {
+        return runCatching {
+            apiCall(json) {
+                api.closeSession(sessionId = sessionId)
+            }
+        }
+    }
+
+    // Cerrar de forma forzada la sesión de la mesa con motivo
+    suspend fun forceCloseSession(
+        sessionId: String,
+        idempotencyKey: String,
+        reason: String
+    ): Result<StaffSession> {
+        return runCatching {
+            apiCall(json) {
+                api.forceCloseSession(
+                    sessionId = sessionId,
+                    idempotencyKey = idempotencyKey,
+                    request = ReasonRequest(reason = reason)
+                )
+            }
+        }
+    }
+
+    // Aplicar un descuento, cortesía o ajuste
     suspend fun createAdjustment(
         sessionId: String,
         idempotencyKey: String,
-        type: String,
-        valueMinor: Long? = null,
-        percent: Int? = null,
+        kind: String,
+        percentBp: Int? = null,
+        amountMinor: Long? = null,
+        orderItemId: String? = null,
         reasonCode: String,
-        note: String? = null
-    ): com.somphie.staff.core.network.StaffAdjustmentResponse {
-        val response = api.createAdjustment(
-            sessionId = sessionId,
-            idempotencyKey = idempotencyKey,
-            request = com.somphie.staff.core.network.StaffAdjustmentRequest(
-                type = type,
-                valueMinor = valueMinor,
-                percent = percent,
-                reasonCode = reasonCode,
-                note = note
-            )
-        )
-        if (response.isSuccessful && response.body() != null) {
-            return response.body()!!
-        } else {
-            throw Exception("Error al aplicar descuento: ${response.code()}")
+        reasonText: String? = null
+    ): Result<StaffAdjustment> {
+        return runCatching {
+            apiCall(json) {
+                api.createAdjustment(
+                    sessionId = sessionId,
+                    idempotencyKey = idempotencyKey,
+                    request = CreateAdjustmentRequest(
+                        kind = kind,
+                        percentBp = percentBp,
+                        amountMinor = amountMinor,
+                        orderItemId = orderItemId,
+                        reasonCode = reasonCode,
+                        reasonText = reasonText
+                    )
+                )
+            }
         }
     }
 
-    // Anular un descuento o cortesía
+    // Anular un descuento o cortesía previamente aplicado
     suspend fun voidAdjustment(
         adjustmentId: String,
         idempotencyKey: String,
-        reasonCode: String,
-        note: String? = null
-    ): com.somphie.staff.core.network.StaffAdjustmentResponse {
-        val response = api.voidAdjustment(
-            adjustmentId = adjustmentId,
-            idempotencyKey = idempotencyKey,
-            request = com.somphie.staff.core.network.StaffVoidAdjustmentRequest(
-                reasonCode = reasonCode,
-                note = note
-            )
-        )
-        if (response.isSuccessful && response.body() != null) {
-            return response.body()!!
-        } else {
-            throw Exception("Error al anular descuento: ${response.code()}")
+        reason: String
+    ): Result<StaffAdjustment> {
+        return runCatching {
+            apiCall(json) {
+                api.voidAdjustment(
+                    adjustmentId = adjustmentId,
+                    idempotencyKey = idempotencyKey,
+                    request = ReasonRequest(reason = reason)
+                )
+            }
         }
     }
 }
