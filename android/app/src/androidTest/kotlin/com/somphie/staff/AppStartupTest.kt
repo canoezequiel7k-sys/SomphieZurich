@@ -22,8 +22,10 @@ class AppStartupTest {
 
     @Test
     fun launchWithoutSavedSessionShowsSignInScreen() {
+        composeRule.onNodeWithText("Iniciar sesión").performClick()
         composeRule.onNodeWithText("Ingresá al sistema").assertIsDisplayed()
         composeRule.onNodeWithText("Correo electrónico").assertIsDisplayed()
+        composeRule.onNodeWithText("Contraseña").assertIsDisplayed()
     }
 
     @Test
@@ -42,9 +44,13 @@ class AppStartupTest {
         // El puerto 1 se reserva para esta prueba: garantiza un rechazo de conexión local e inmediato.
         assumeTrue(BuildConfig.API_BASE_URL.startsWith("http://127.0.0.1:1/"))
 
+        composeRule.onNodeWithText("Iniciar sesión").performClick()
+        composeRule.onNodeWithText("Ingresá al sistema").assertIsDisplayed()
+        composeRule.onNodeWithText("Correo electrónico").assertIsDisplayed()
+        composeRule.onNodeWithText("Contraseña").assertIsDisplayed()
         composeRule.onNodeWithText("Correo electrónico").performTextInput("offline@example.invalid")
         composeRule.onNodeWithText("Contraseña").performTextInput("not-a-real-password")
-        composeRule.onNodeWithText("Iniciar sesión").performClick()
+        composeRule.onNodeWithText("Ingresar").performClick()
 
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText(
