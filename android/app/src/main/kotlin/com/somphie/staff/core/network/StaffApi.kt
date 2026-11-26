@@ -69,45 +69,59 @@ interface StaffApi {
         @Header("Idempotency-Key") idempotencyKey: String,
     ): ActionResult
 
-    // Registra un pago en caja (Efectivo / Tarjeta simulada)
+    // Registra un pago en caja (Efectivo)
     @POST("staff/sessions/{sessionId}/payments")
     suspend fun createPayment(
         @Path("sessionId") sessionId: String,
         @Header("Idempotency-Key") idempotencyKey: String,
-        @Body request: StaffPaymentRequest
-    ): Response<StaffPaymentResponse>
+        @Body request: CreateCashPaymentRequest
+    ): PaymentResult
 
-    // Reembolsa / Anula un pago registrado
-    @POST("staff/payments/{paymentId}/refund")
-    suspend fun refundPayment(
+    // Anula un pago registrado en caja
+    @POST("staff/payments/{paymentId}/void")
+    suspend fun voidPayment(
         @Path("paymentId") paymentId: String,
         @Header("Idempotency-Key") idempotencyKey: String,
-        @Body request: StaffRefundRequest
-    ): Response<StaffPaymentResponse>
+        @Body request: ReasonRequest
+    ): PaymentResult
 
-    // Cierra manualmente o de forma forzada una sesión de mesa
-    @POST("staff/sessions/{sessionId}/close")
-    suspend fun closeSession(
+    // Reembolsa una sesión de mesa
+    @POST("staff/sessions/{sessionId}/refunds")
+    suspend fun refundPayment(
         @Path("sessionId") sessionId: String,
         @Header("Idempotency-Key") idempotencyKey: String,
-        @Body request: CloseSessionRequest
-    ): Response<StaffSession>
+        @Body request: CreateRefundRequest
+    ): PaymentResult
+
+    // Cierra normalmente una sesión de mesa sin saldo pendiente
+    @POST("staff/sessions/{sessionId}/close")
+    suspend fun closeSession(
+        @Path("sessionId") sessionId: String
+    ): StaffSession
+
+    // Cierra de forma forzada una sesión de mesa con motivo
+    @POST("staff/sessions/{sessionId}/force-close")
+    suspend fun forceCloseSession(
+        @Path("sessionId") sessionId: String,
+        @Header("Idempotency-Key") idempotencyKey: String,
+        @Body request: ReasonRequest
+    ): StaffSession
 
     // Aplica un ajuste o descuento a la sesión de mesa
     @POST("staff/sessions/{sessionId}/adjustments")
     suspend fun createAdjustment(
         @Path("sessionId") sessionId: String,
         @Header("Idempotency-Key") idempotencyKey: String,
-        @Body request: StaffAdjustmentRequest
-    ): Response<StaffAdjustmentResponse>
+        @Body request: CreateAdjustmentRequest
+    ): StaffAdjustment
 
     // Anula un ajuste o descuento previamente aplicado
     @POST("staff/adjustments/{adjustmentId}/void")
     suspend fun voidAdjustment(
         @Path("adjustmentId") adjustmentId: String,
         @Header("Idempotency-Key") idempotencyKey: String,
-        @Body request: StaffVoidAdjustmentRequest
-    ): Response<StaffAdjustmentResponse>
+        @Body request: ReasonRequest
+    ): StaffAdjustment
 
     // Crear un pedido a nombre del cliente para una sesión de mesa
     @POST("staff/sessions/{sessionId}/orders")

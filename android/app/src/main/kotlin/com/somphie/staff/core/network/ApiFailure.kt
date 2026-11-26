@@ -25,7 +25,13 @@ suspend fun <T> apiCall(json: Json, call: suspend () -> T): T =
         }
         throw ApiFailure(
             status = exception.code(),
-            code = problem?.code ?: "HTTP_ERROR",
+            code = problem?.code ?: "HTTP_${exception.code()}",
             detail = problem?.detail ?: problem?.title,
+        )
+    } catch (exception: SerializationException) {
+        throw ApiFailure(
+            status = 200,
+            code = "UNCERTAIN_RESULT",
+            detail = "Respuesta del servidor no legible. Reintente con la misma clave de idempotencia.",
         )
     }
